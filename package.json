@@ -1,0 +1,26 @@
+{
+  "name": "mindspring",
+  "version": "1.0.0",
+  "description": "MindSpring - Student Mental Wellness & Exam Preparation Platform",
+  "scripts": {
+    "install:server": "cd server && npm install",
+    "install:client": "cd client && npm install",
+    "install:all": "cd server && npm install && cd ../client && npm install",
+    "dev:server": "cd server && npm run dev",
+    "dev:client": "cd client && npm run dev",
+    "build:client": "cd client && npm run build",
+    "start": "cd server && npm start",
+    "test": "cd server && npm test"
+  },
+  "keywords": [
+    "mental-health",
+    "student-wellness",
+    "exam-prep",
+    "jee",
+    "neet",
+    "upsc",
+    "ai-companion"
+  ],
+  "author": "MindSpring Team",
+  "license": "MIT"
+}
