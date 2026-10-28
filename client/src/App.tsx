@@ -3,7 +3,7 @@ import { Navbar } from './components/Navbar';
 import { Sidebar } from './components/Sidebar';
 import { CrisisModal } from './components/CrisisModal';
 import { StudentDashboard } from './pages/StudentDashboard';
-import { AcademicHub } from './pages/AcademicHub';
+import { TodoPlanner } from './pages/TodoPlanner';
 import { WellbeingCenter } from './pages/WellbeingCenter';
 import { AICompanion } from './pages/AICompanion';
 import { WellbeingGames } from './pages/WellbeingGames';
@@ -108,8 +108,8 @@ export function App() {
             />
           )}
 
-          {currentTab === 'academic' && (
-            <AcademicHub currentUser={currentUser} />
+          {(currentTab === 'planner' || currentTab === 'academic') && (
+            <TodoPlanner currentUser={currentUser} />
           )}
 
           {currentTab === 'wellbeing' && (

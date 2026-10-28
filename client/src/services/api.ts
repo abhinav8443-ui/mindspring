@@ -1,6 +1,6 @@
 import { 
   User, 
-  SubjectProgress, 
+  TodoTask,
   StudyTask, 
   MockTest, 
   MistakeEntry, 
@@ -82,17 +82,135 @@ const LOCAL_USERS: User[] = [
 
 let currentUser: User = LOCAL_USERS[0];
 
-const LOCAL_SYLLABUS: Record<string, SubjectProgress[]> = {
-  'student-1': [
-    { id: 'sub-1', name: 'Physics', progress: 72, totalChapters: 24, completedChapters: 17 },
-    { id: 'sub-2', name: 'Chemistry', progress: 68, totalChapters: 28, completedChapters: 19 },
-    { id: 'sub-3', name: 'Mathematics', progress: 54, totalChapters: 26, completedChapters: 14 }
-  ],
-  'student-2': [
-    { id: 'sub-4', name: 'Biology', progress: 80, totalChapters: 38, completedChapters: 30 },
-    { id: 'sub-5', name: 'Physics', progress: 60, totalChapters: 24, completedChapters: 14 },
-    { id: 'sub-6', name: 'Chemistry', progress: 75, totalChapters: 28, completedChapters: 21 }
-  ]
+const getInitialTodoTasks = (): Record<string, TodoTask[]> => {
+  const nowIso = new Date().toISOString();
+  const todayDate = nowIso.split('T')[0];
+  const yesterdayDate = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+  const tomorrowDate = new Date(Date.now() + 86400000).toISOString().split('T')[0];
+  
+  try {
+    const saved = localStorage.getItem('mindspring_todo_tasks');
+    if (saved) {
+      return JSON.parse(saved);
+    }
+  } catch (e) {}
+
+  return {
+    'student-1': [
+      {
+        id: 'task-1',
+        studentId: 'student-1',
+        title: 'Morning Mindful Breathing & Hydration',
+        description: 'Start the day gently with 5 minutes of calming box breathing and a glass of water.',
+        date: todayDate,
+        startTime: '07:30',
+        priority: 'low',
+        category: 'Personal',
+        reminderMinutesBefore: 5,
+        completed: true,
+        createdAt: nowIso
+      },
+      {
+        id: 'task-2',
+        studentId: 'student-1',
+        title: 'Practice 15 Calculus PYQs without time panic',
+        description: 'Focus on understanding step logic rather than rushing the stopwatch.',
+        date: todayDate,
+        startTime: '09:30',
+        priority: 'high',
+        category: 'Practice',
+        reminderMinutesBefore: 10,
+        completed: false,
+        createdAt: nowIso
+      },
+      {
+        id: 'task-3',
+        studentId: 'student-1',
+        title: 'Review Electrochemistry Short Notes',
+        description: 'Review galvanic cell conventions and Nernst equation applications.',
+        date: todayDate,
+        startTime: '14:00',
+        priority: 'medium',
+        category: 'Revision',
+        reminderMinutesBefore: 15,
+        completed: false,
+        createdAt: nowIso
+      },
+      {
+        id: 'task-4',
+        studentId: 'student-1',
+        title: 'Evening Outdoor Walk (No Study Talk)',
+        description: 'Disconnect from screens, breathe fresh air, and let the mind reset.',
+        date: todayDate,
+        startTime: '17:30',
+        priority: 'low',
+        category: 'Personal',
+        reminderMinutesBefore: 0,
+        completed: false,
+        createdAt: nowIso
+      },
+      {
+        id: 'task-5',
+        studentId: 'student-1',
+        title: 'Solve Ray Optics Convex Lens Diagrams',
+        description: 'Work through 5 ray tracing problems with clean pencil diagrams.',
+        date: todayDate,
+        startTime: '19:30',
+        priority: 'medium',
+        category: 'Study',
+        reminderMinutesBefore: 15,
+        completed: false,
+        createdAt: nowIso
+      },
+      {
+        id: 'task-6',
+        studentId: 'student-1',
+        title: 'Organic Chemistry Functional Groups Recap',
+        description: 'Review aldehyde and ketone distinction tests.',
+        date: tomorrowDate,
+        startTime: '10:00',
+        priority: 'high',
+        category: 'Revision',
+        reminderMinutesBefore: 15,
+        completed: false,
+        createdAt: nowIso
+      },
+      {
+        id: 'task-7',
+        studentId: 'student-1',
+        title: 'Organize Desk & 7-Hour Sleep Wind Down',
+        description: 'Tidy up notes and prepare for restful, restorative sleep before 11 PM.',
+        date: tomorrowDate,
+        startTime: '21:30',
+        priority: 'low',
+        category: 'Personal',
+        reminderMinutesBefore: 30,
+        completed: false,
+        createdAt: nowIso
+      },
+      {
+        id: 'task-8',
+        studentId: 'student-1',
+        title: 'Physics Mechanics Formula Flashcards',
+        description: 'Quick active recall session for rotational inertia formulas.',
+        date: yesterdayDate,
+        startTime: '16:00',
+        priority: 'medium',
+        category: 'Revision',
+        reminderMinutesBefore: 10,
+        completed: true,
+        createdAt: nowIso
+      }
+    ]
+  };
+};
+
+const LOCAL_TODO_TASKS: Record<string, TodoTask[]> = getInitialTodoTasks();
+
+const persistLocalTodoTasks = () => {
+  try {
+    localStorage.setItem('mindspring_todo_tasks', JSON.stringify(LOCAL_TODO_TASKS));
+  } catch (e) {}
 };
 
 const LOCAL_TASKS: Record<string, StudyTask[]> = {
@@ -487,27 +605,122 @@ export const api = {
     });
   },
 
-  // Academic
-  async getSyllabus(studentId?: string): Promise<{ syllabus: SubjectProgress[] }> {
+  // To-Do Planner API
+  async getTodoTasks(studentId?: string, query?: { date?: string; month?: string }): Promise<{ tasks: TodoTask[] }> {
     const key = studentId || currentUser.id || 'student-1';
-    return safeFetch(`${API_BASE}/academic/syllabus?studentId=${key}`, undefined, () => ({
-      syllabus: LOCAL_SYLLABUS[key] || LOCAL_SYLLABUS['student-1']
-    }));
-  },
+    const queryParams = new URLSearchParams();
+    if (query?.date) queryParams.set('date', query.date);
+    if (query?.month) queryParams.set('month', query.month);
+    queryParams.set('studentId', key);
 
-  async incrementSubject(subjectId: string, studentId?: string): Promise<{ success: boolean; subject: SubjectProgress }> {
-    const key = studentId || currentUser.id || 'student-1';
-    return safeFetch(`${API_BASE}/academic/syllabus/${subjectId}/increment?studentId=${key}`, { method: 'POST' }, () => {
-      const list = LOCAL_SYLLABUS[key] || LOCAL_SYLLABUS['student-1'];
-      const sub = list.find(s => s.id === subjectId);
-      if (sub && sub.completedChapters < sub.totalChapters) {
-        sub.completedChapters += 1;
-        sub.progress = Math.round((sub.completedChapters / sub.totalChapters) * 100);
+    return safeFetch(`${API_BASE}/academic/tasks?${queryParams.toString()}`, undefined, () => {
+      let list = LOCAL_TODO_TASKS[key] || LOCAL_TODO_TASKS['student-1'] || [];
+      if (query?.date) {
+        list = list.filter(t => t.date === query.date);
+      } else if (query?.month) {
+        list = list.filter(t => t.date.startsWith(query.month!));
       }
-      return { success: true, subject: sub! };
+      return { tasks: [...list] };
     });
   },
 
+  async addTodoTask(data: Partial<TodoTask>, studentId?: string): Promise<{ success: boolean; task: TodoTask }> {
+    const key = studentId || currentUser.id || 'student-1';
+    return safeFetch(`${API_BASE}/academic/tasks`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...data, studentId: key })
+    }, () => {
+      if (!LOCAL_TODO_TASKS[key]) LOCAL_TODO_TASKS[key] = [];
+      const newTask: TodoTask = {
+        id: `task-${Date.now()}`,
+        studentId: key,
+        title: data.title || 'Untitled Task',
+        description: data.description || '',
+        date: data.date || new Date().toISOString().split('T')[0],
+        startTime: data.startTime || '10:00',
+        priority: data.priority || 'medium',
+        category: data.category || 'Study',
+        reminderMinutesBefore: data.reminderMinutesBefore !== undefined ? data.reminderMinutesBefore : 10,
+        completed: false,
+        createdAt: new Date().toISOString(),
+        notified: false
+      };
+      LOCAL_TODO_TASKS[key].unshift(newTask);
+      persistLocalTodoTasks();
+      return { success: true, task: newTask };
+    });
+  },
+
+  async updateTodoTask(taskId: string, updates: Partial<TodoTask>, studentId?: string): Promise<{ success: boolean; task: TodoTask }> {
+    const key = studentId || currentUser.id || 'student-1';
+    return safeFetch(`${API_BASE}/academic/tasks/${taskId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...updates, studentId: key })
+    }, () => {
+      const list = LOCAL_TODO_TASKS[key] || LOCAL_TODO_TASKS['student-1'] || [];
+      const idx = list.findIndex(t => t.id === taskId);
+      if (idx >= 0) {
+        list[idx] = { ...list[idx], ...updates, id: taskId };
+        persistLocalTodoTasks();
+        return { success: true, task: list[idx] };
+      }
+      throw new Error('Task not found');
+    });
+  },
+
+  async deleteTodoTask(taskId: string, studentId?: string): Promise<{ success: boolean }> {
+    const key = studentId || currentUser.id || 'student-1';
+    return safeFetch(`${API_BASE}/academic/tasks/${taskId}?studentId=${key}`, {
+      method: 'DELETE'
+    }, () => {
+      if (LOCAL_TODO_TASKS[key]) {
+        LOCAL_TODO_TASKS[key] = LOCAL_TODO_TASKS[key].filter(t => t.id !== taskId);
+        persistLocalTodoTasks();
+      }
+      return { success: true };
+    });
+  },
+
+  async toggleTodoTask(taskId: string, studentId?: string): Promise<{ success: boolean; task: TodoTask }> {
+    const key = studentId || currentUser.id || 'student-1';
+    return safeFetch(`${API_BASE}/academic/tasks/toggle?studentId=${key}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ taskId, studentId: key })
+    }, () => {
+      const list = LOCAL_TODO_TASKS[key] || LOCAL_TODO_TASKS['student-1'] || [];
+      const task = list.find(t => t.id === taskId);
+      if (task) {
+        task.completed = !task.completed;
+        persistLocalTodoTasks();
+        return { success: true, task };
+      }
+      throw new Error('Task not found');
+    });
+  },
+
+  async rescheduleTodoTask(taskId: string, newDate: string, studentId?: string): Promise<{ success: boolean; task: TodoTask }> {
+    const key = studentId || currentUser.id || 'student-1';
+    return safeFetch(`${API_BASE}/academic/tasks/${taskId}/reschedule?studentId=${key}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ date: newDate, studentId: key })
+    }, () => {
+      const list = LOCAL_TODO_TASKS[key] || LOCAL_TODO_TASKS['student-1'] || [];
+      const task = list.find(t => t.id === taskId);
+      if (task) {
+        task.date = newDate;
+        task.notified = false;
+        persistLocalTodoTasks();
+        return { success: true, task };
+      }
+      throw new Error('Task not found');
+    });
+  },
+
+  // Legacy compatibility for tasks
   async getTasks(studentId?: string): Promise<{ tasks: StudyTask[] }> {
     const key = studentId || currentUser.id || 'student-1';
     return safeFetch(`${API_BASE}/academic/tasks?studentId=${key}`, undefined, () => ({
@@ -923,7 +1136,7 @@ export const api = {
         name: 'Aarav Sharma',
         examGoal: 'JEE Main & Advanced 2027',
         studyConsistencyStreak: '14 consecutive days',
-        syllabusOverview: LOCAL_SYLLABUS['student-1']
+        taskSummary: `${(LOCAL_TODO_TASKS['student-1'] || []).filter(t => t.completed).length} of ${(LOCAL_TODO_TASKS['student-1'] || []).length} tasks completed today`
       },
       privacyNotice: 'Personal journal entries and confidential counsellor dialogues remain strictly between the student and certified mental health professionals.',
       parentSupportGuide: [

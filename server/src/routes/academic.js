@@ -1,44 +1,84 @@
 import express from 'express';
-import { SYLLABUS_DATA, STUDY_PLAN, MOCK_TESTS, MISTAKE_NOTEBOOK, BACKLOG_ITEMS, REVISION_SCHEDULE } from '../db/store.js';
+import { TODO_TASKS, MOCK_TESTS, MISTAKE_NOTEBOOK, BACKLOG_ITEMS, REVISION_SCHEDULE } from '../db/store.js';
 
 const router = express.Router();
 
 function getStudentKey(req) {
-  return req.query.studentId || 'student-1';
+  return req.query.studentId || req.body?.studentId || 'student-1';
 }
 
-// Syllabus
-router.get('/syllabus', (req, res) => {
-  const key = getStudentKey(req);
-  const data = SYLLABUS_DATA[key] || SYLLABUS_DATA['student-1'];
-  res.json({ syllabus: data });
-});
-
-router.post('/syllabus/:subjectId/increment', (req, res) => {
-  const key = getStudentKey(req);
-  const data = SYLLABUS_DATA[key] || SYLLABUS_DATA['student-1'];
-  const subject = data.find(s => s.id === req.params.subjectId);
-  if (subject) {
-    if (subject.completedChapters < subject.totalChapters) {
-      subject.completedChapters += 1;
-      subject.progress = Math.round((subject.completedChapters / subject.totalChapters) * 100);
-    }
-    return res.json({ success: true, subject });
-  }
-  res.status(404).json({ error: 'Subject not found' });
-});
-
-// Tasks / Daily Planner
+// To-Do Planner: Tasks Endpoints
 router.get('/tasks', (req, res) => {
   const key = getStudentKey(req);
-  const tasks = STUDY_PLAN[key] || STUDY_PLAN['student-1'];
-  res.json({ tasks });
+  const tasks = TODO_TASKS[key] || TODO_TASKS['student-1'] || [];
+  
+  const { date, month } = req.query;
+  let filtered = [...tasks];
+  if (date) {
+    filtered = filtered.filter(t => t.date === date);
+  } else if (month) {
+    // month formatted as 'YYYY-MM'
+    filtered = filtered.filter(t => t.date.startsWith(month));
+  }
+  
+  res.json({ tasks: filtered });
+});
+
+router.post('/tasks', (req, res) => {
+  const { title, description, date, startTime, priority, category, reminderMinutesBefore } = req.body;
+  const key = getStudentKey(req);
+  if (!TODO_TASKS[key]) TODO_TASKS[key] = [];
+
+  const newTask = {
+    id: `task-${Date.now()}`,
+    studentId: key,
+    title: title || 'Untitled Task',
+    description: description || '',
+    date: date || new Date().toISOString().split('T')[0],
+    startTime: startTime || '10:00',
+    priority: priority || 'medium',
+    category: category || 'Study',
+    reminderMinutesBefore: reminderMinutesBefore !== undefined ? Number(reminderMinutesBefore) : 10,
+    completed: false,
+    createdAt: new Date().toISOString(),
+    notified: false
+  };
+
+  TODO_TASKS[key].unshift(newTask);
+  res.json({ success: true, task: newTask });
+});
+
+router.put('/tasks/:id', (req, res) => {
+  const { id } = req.params;
+  const key = getStudentKey(req);
+  const tasks = TODO_TASKS[key] || TODO_TASKS['student-1'] || [];
+  const taskIndex = tasks.findIndex(t => t.id === id);
+
+  if (taskIndex !== -1) {
+    tasks[taskIndex] = {
+      ...tasks[taskIndex],
+      ...req.body,
+      id // preserve ID
+    };
+    return res.json({ success: true, task: tasks[taskIndex] });
+  }
+
+  res.status(404).json({ error: 'Task not found' });
+});
+
+router.delete('/tasks/:id', (req, res) => {
+  const { id } = req.params;
+  const key = getStudentKey(req);
+  if (TODO_TASKS[key]) {
+    TODO_TASKS[key] = TODO_TASKS[key].filter(t => t.id !== id);
+  }
+  res.json({ success: true });
 });
 
 router.post('/tasks/toggle', (req, res) => {
   const { taskId } = req.body;
   const key = getStudentKey(req);
-  const tasks = STUDY_PLAN[key] || STUDY_PLAN['student-1'];
+  const tasks = TODO_TASKS[key] || TODO_TASKS['student-1'] || [];
   const task = tasks.find(t => t.id === taskId);
   if (task) {
     task.completed = !task.completed;
@@ -47,21 +87,18 @@ router.post('/tasks/toggle', (req, res) => {
   res.status(404).json({ error: 'Task not found' });
 });
 
-router.post('/tasks', (req, res) => {
-  const { subject, task, durationMin, scheduledTime } = req.body;
+router.post('/tasks/:id/reschedule', (req, res) => {
+  const { id } = req.params;
+  const { date } = req.body;
   const key = getStudentKey(req);
-  if (!STUDY_PLAN[key]) STUDY_PLAN[key] = [];
-
-  const newTask = {
-    id: `plan-${Date.now()}`,
-    subject: subject || 'General',
-    task: task || 'Study session',
-    durationMin: Number(durationMin) || 45,
-    completed: false,
-    scheduledTime: scheduledTime || '04:00 PM'
-  };
-  STUDY_PLAN[key].push(newTask);
-  res.json({ success: true, task: newTask });
+  const tasks = TODO_TASKS[key] || TODO_TASKS['student-1'] || [];
+  const task = tasks.find(t => t.id === id);
+  if (task) {
+    task.date = date;
+    task.notified = false; // reset notification for rescheduled date
+    return res.json({ success: true, task });
+  }
+  res.status(404).json({ error: 'Task not found' });
 });
 
 // Mock Tests

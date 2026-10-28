@@ -17,9 +17,14 @@ import {
   BookOpen, 
   Sun,
   ShieldCheck,
-  PhoneCall
+  PhoneCall,
+  CheckSquare,
+  Check,
+  Bell,
+  Clock,
+  Plus
 } from 'lucide-react';
-import { User, MoodLog } from '../types';
+import { User, MoodLog, TodoTask } from '../types';
 import { api } from '../services/api';
 import { soundscapes } from '../utils/audioSynthesis';
 import confetti from 'canvas-confetti';
@@ -79,6 +84,38 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser,
       } catch (e) {}
     } catch (err) {
       console.error('Failed to submit mood:', err);
+    }
+  };
+
+  const [todayTasks, setTodayTasks] = useState<TodoTask[]>([]);
+  const todayStr = new Date().toISOString().split('T')[0];
+
+  useEffect(() => {
+    loadTodayTasks();
+  }, [currentUser]);
+
+  const loadTodayTasks = async () => {
+    try {
+      const res = await api.getTodoTasks(currentUser?.id, { date: todayStr });
+      setTodayTasks(res.tasks || []);
+    } catch (e) {
+      console.error('Failed to load today tasks:', e);
+    }
+  };
+
+  const handleToggleTask = async (taskId: string) => {
+    try {
+      const res = await api.toggleTodoTask(taskId, currentUser?.id);
+      if (res.success) {
+        setTodayTasks(prev => prev.map(t => t.id === taskId ? res.task : t));
+        if (res.task.completed) {
+          try {
+            confetti({ particleCount: 30, spread: 45, origin: { y: 0.8 } });
+          } catch (e) {}
+        }
+      }
+    } catch (e) {
+      console.error('Failed to toggle task:', e);
     }
   };
 
@@ -380,6 +417,93 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser,
             </div>
           </div>
 
+          {/* Today's To-Do & Reminders Dashboard Section */}
+          <div className="bg-white rounded-3xl p-6 sm:p-8 border border-lavender-100 shadow-card space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div>
+                <div className="flex items-center gap-2 text-lavender-700 font-bold text-sm">
+                  <CheckSquare className="w-4 h-4" />
+                  <span>Today's To-Do & Gentle Reminders</span>
+                </div>
+                <h3 className="text-base font-extrabold text-slate-800 mt-0.5">
+                  {todayTasks.filter(t => t.completed).length} of {todayTasks.length} Completed Today
+                </h3>
+              </div>
+              <button
+                onClick={() => onNavigateTab('planner')}
+                className="text-xs font-bold text-lavender-700 hover:text-lavender-900 flex items-center gap-1 self-start sm:self-auto"
+              >
+                <span>Open To-Do Planner</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+
+            {todayTasks.length === 0 ? (
+              <div className="p-6 rounded-2xl bg-slate-50 border border-slate-100 text-center space-y-2">
+                <p className="text-xs text-slate-500">
+                  No tasks scheduled for today. Enjoy a quiet recovery day, or plan a small task.
+                </p>
+                <button
+                  onClick={() => onNavigateTab('planner')}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-lavender-600 hover:bg-lavender-700 text-white font-bold text-xs shadow-sm transition-all"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Plan a Task</span>
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-2.5">
+                {todayTasks.slice(0, 4).map(task => (
+                  <div
+                    key={task.id}
+                    className={`p-3 rounded-2xl border transition-all flex items-center justify-between gap-3 ${
+                      task.completed ? 'bg-slate-50/70 border-slate-200 opacity-75' : 'bg-white border-slate-200 hover:border-lavender-300'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <button
+                        onClick={() => handleToggleTask(task.id)}
+                        className={`w-4 h-4 rounded-md flex items-center justify-center shrink-0 ${
+                          task.completed ? 'bg-sage-600 text-white' : 'border border-slate-300'
+                        }`}
+                      >
+                        {task.completed && <Check className="w-3 h-3 stroke-[3]" />}
+                      </button>
+                      <div className="min-w-0">
+                        <p className={`text-xs font-bold truncate ${task.completed ? 'line-through text-slate-400' : 'text-slate-800'}`}>
+                          {task.title}
+                        </p>
+                        <div className="flex items-center gap-2 text-[10px] text-slate-400 mt-0.5">
+                          <span>{task.category}</span>
+                          {task.startTime && (
+                            <span className="flex items-center gap-0.5">
+                              &bull; <Clock className="w-3 h-3 inline" /> {task.startTime}
+                            </span>
+                          )}
+                          {task.reminderMinutesBefore !== undefined && (
+                            <span className="flex items-center gap-0.5 text-lavender-600 font-semibold">
+                              &bull; <Bell className="w-2.5 h-2.5 inline" /> {task.reminderMinutesBefore === 0 ? 'Now' : `${task.reminderMinutesBefore}m`}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full uppercase border shrink-0 ${
+                      task.priority === 'high' 
+                        ? 'bg-red-50 text-red-700 border-red-200' 
+                        : task.priority === 'medium'
+                        ? 'bg-amber-50 text-amber-700 border-amber-200'
+                        : 'bg-sky-50 text-sky-700 border-sky-200'
+                    }`}>
+                      {task.priority}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
         </div>
 
         {/* Right Column: 60-Second Breathing, Self-Care Insights & Schedule Nudge */}
@@ -437,21 +561,24 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser,
             </div>
           </div>
 
-          {/* Gentle Nudge to Study Schedule (Clarified as the last option) */}
-          <div className="p-5 rounded-3xl bg-slate-50 border border-slate-200 space-y-2 text-left">
+          {/* To-Do Planner Shortcut Card */}
+          <div className="p-5 rounded-3xl bg-slate-50 border border-slate-200 space-y-2.5 text-left">
             <div className="flex items-center gap-2 text-slate-700 font-bold text-xs">
-              <Calendar className="w-4 h-4 text-slate-500" />
-              <span>Exam Schedule & Planner (Optional)</span>
+              <CheckSquare className="w-4 h-4 text-lavender-600" />
+              <span>To-Do Planner (Daily & Monthly)</span>
             </div>
             <p className="text-[11px] text-slate-500 leading-relaxed">
-              If you ever want to check or adjust your study schedule without pressure, it is available as the last tab in the sidebar. You never need to study just because you opened this website.
+              Plan tasks for today or map your month on an interactive calendar with audio alarms and notifications. Zero syllabus pressure.
             </p>
-            <button
-              onClick={() => onNavigateTab('academic')}
-              className="text-xs font-bold text-lavender-700 hover:text-lavender-900 underline"
-            >
-              Open study schedule when ready →
-            </button>
+            <div className="flex items-center gap-2 pt-1">
+              <button
+                onClick={() => onNavigateTab('planner')}
+                className="text-xs font-bold text-lavender-700 hover:text-lavender-900 flex items-center gap-1"
+              >
+                <span>Open Planner</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
           </div>
 
           {/* 24x7 Crisis Support Card */}

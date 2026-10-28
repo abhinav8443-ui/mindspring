@@ -1,12 +1,13 @@
 import express from 'express';
-import { USERS, SYLLABUS_DATA, MOCK_TESTS, CONSULTATION_REQUESTS, AUDIT_LOGS } from '../db/store.js';
+import { USERS, TODO_TASKS, MOCK_TESTS, CONSULTATION_REQUESTS, AUDIT_LOGS } from '../db/store.js';
 
 const router = express.Router();
 
 // Parent Dashboard
 router.get('/parent', (req, res) => {
   const student = USERS.find(u => u.id === 'student-1');
-  const syllabus = SYLLABUS_DATA['student-1'] || [];
+  const tasks = TODO_TASKS['student-1'] || [];
+  const completedCount = tasks.filter(t => t.completed).length;
   const tests = MOCK_TESTS['student-1'] || [];
 
   res.json({
@@ -16,11 +17,12 @@ router.get('/parent', (req, res) => {
       examGoal: student.examGoal,
       studyConsistencyStreak: '14 consecutive days',
       weeklyStudyHours: '42.5 hrs logged',
-      syllabusOverview: syllabus.map(s => ({
-        subject: s.name,
-        progress: s.progress,
-        completedChapters: s.completedChapters,
-        totalChapters: s.totalChapters
+      taskCompletionRate: `${Math.round((completedCount / (tasks.length || 1)) * 100)}% (${completedCount} of ${tasks.length} tasks completed)`,
+      recentTasks: tasks.slice(0, 4).map(t => ({
+        title: t.title,
+        category: t.category,
+        completed: t.completed,
+        date: t.date
       })),
       recentMockProgress: tests.slice(0, 3).map(t => ({
         title: t.title,

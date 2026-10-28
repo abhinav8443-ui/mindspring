@@ -63,16 +63,117 @@ export const USERS = [
   }
 ];
 
-export const SYLLABUS_DATA = {
+const nowIso = new Date().toISOString();
+const todayDate = nowIso.split('T')[0];
+const yesterdayDate = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+const tomorrowDate = new Date(Date.now() + 86400000).toISOString().split('T')[0];
+
+export const TODO_TASKS = {
   'student-1': [
-    { id: 'sub-1', name: 'Physics', progress: 72, totalChapters: 24, completedChapters: 17, color: 'text-indigo-600 bg-indigo-50' },
-    { id: 'sub-2', name: 'Chemistry', progress: 68, totalChapters: 28, completedChapters: 19, color: 'text-emerald-600 bg-emerald-50' },
-    { id: 'sub-3', name: 'Mathematics', progress: 54, totalChapters: 26, completedChapters: 14, color: 'text-purple-600 bg-purple-50' }
-  ],
-  'student-2': [
-    { id: 'sub-4', name: 'Biology', progress: 80, totalChapters: 38, completedChapters: 30, color: 'text-emerald-600 bg-emerald-50' },
-    { id: 'sub-5', name: 'Physics', progress: 60, totalChapters: 24, completedChapters: 14, color: 'text-indigo-600 bg-indigo-50' },
-    { id: 'sub-6', name: 'Chemistry', progress: 75, totalChapters: 28, completedChapters: 21, color: 'text-purple-600 bg-purple-50' }
+    {
+      id: 'task-1',
+      studentId: 'student-1',
+      title: 'Morning Mindful Breathing & Hydration',
+      description: 'Start the day gently with 5 minutes of calming box breathing and a glass of water.',
+      date: todayDate,
+      startTime: '07:30',
+      priority: 'low',
+      category: 'Personal',
+      reminderMinutesBefore: 5,
+      completed: true,
+      createdAt: nowIso
+    },
+    {
+      id: 'task-2',
+      studentId: 'student-1',
+      title: 'Practice 15 Calculus PYQs without time panic',
+      description: 'Focus on understanding step logic rather than rushing the stopwatch.',
+      date: todayDate,
+      startTime: '09:30',
+      priority: 'high',
+      category: 'Practice',
+      reminderMinutesBefore: 10,
+      completed: false,
+      createdAt: nowIso
+    },
+    {
+      id: 'task-3',
+      studentId: 'student-1',
+      title: 'Review Electrochemistry Short Notes',
+      description: 'Review galvanic cell conventions and Nernst equation applications.',
+      date: todayDate,
+      startTime: '14:00',
+      priority: 'medium',
+      category: 'Revision',
+      reminderMinutesBefore: 15,
+      completed: false,
+      createdAt: nowIso
+    },
+    {
+      id: 'task-4',
+      studentId: 'student-1',
+      title: 'Evening Outdoor Walk (No Study Talk)',
+      description: 'Disconnect from screens, breathe fresh air, and let the mind reset.',
+      date: todayDate,
+      startTime: '17:30',
+      priority: 'low',
+      category: 'Personal',
+      reminderMinutesBefore: 0,
+      completed: false,
+      createdAt: nowIso
+    },
+    {
+      id: 'task-5',
+      studentId: 'student-1',
+      title: 'Solve Ray Optics Convex Lens Diagrams',
+      description: 'Work through 5 ray tracing problems with clean pencil diagrams.',
+      date: todayDate,
+      startTime: '19:30',
+      priority: 'medium',
+      category: 'Study',
+      reminderMinutesBefore: 15,
+      completed: false,
+      createdAt: nowIso
+    },
+    {
+      id: 'task-6',
+      studentId: 'student-1',
+      title: 'Organic Chemistry Functional Groups Recap',
+      description: 'Review aldehyde and ketone distinction tests.',
+      date: tomorrowDate,
+      startTime: '10:00',
+      priority: 'high',
+      category: 'Revision',
+      reminderMinutesBefore: 15,
+      completed: false,
+      createdAt: nowIso
+    },
+    {
+      id: 'task-7',
+      studentId: 'student-1',
+      title: 'Organize Desk & 7-Hour Sleep Wind Down',
+      description: 'Tidy up notes and prepare for restful, restorative sleep before 11 PM.',
+      date: tomorrowDate,
+      startTime: '21:30',
+      priority: 'low',
+      category: 'Personal',
+      reminderMinutesBefore: 30,
+      completed: false,
+      createdAt: nowIso
+    },
+    {
+      id: 'task-8',
+      studentId: 'student-1',
+      title: 'Physics Mechanics Formula Flashcards',
+      description: 'Quick active recall session for rotational inertia formulas.',
+      date: yesterdayDate,
+      startTime: '16:00',
+      priority: 'medium',
+      category: 'Revision',
+      reminderMinutesBefore: 10,
+      completed: true,
+      createdAt: nowIso
+    }
   ]
 };
 

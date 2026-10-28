@@ -89,13 +89,6 @@ Located in the Support section, this interactive companion offers compassionate,
    - **5-4-3-2-1 Sensory Grounding Checklist**: Breaks acute panic by reconnecting with the five senses.
    - **Ambient Soundscapes Generator**: Synthesizes Gentle Rain, Tibetan Singing Bowl, Ocean Waves, and Forest Breeze purely through native Web Audio API oscillators and filters (zero external audio files required!).
 
-### 7. Academic Preparation Tracker
-- Pre-configured syllabus templates for JEE, NEET, and UPSC.
-- Daily & weekly study planner with task check-off and time blocks.
-- **Spaced Repetition Scheduler**: Ebbinghaus forgetting curve intervals (Day 1, 3, 7, 21 review cycles).
-- **Mock Test Tracker & Mistake Notebook**: Categorizes errors (*Conceptual Error*, *Calculation Mistake*, *Silly Error*, *Time Crunch*) with key takeaway formulas to review before exam day.
-- **Backlog Buster**: Prioritizes backlog chapters by urgency (High, Medium, Low) with estimated recovery hours.
-
 ### 7. Trusted Circle, Counsellors & Teachers' Contact Info
 - **Student's Teachers & Academic Mentors**: A dedicated section where students can add and manage contact information for their teachers and academic guides (phone number, email, doubt-clearing hours, and personal mentor guidance notes). Offers instant one-click Call and Email actions.
 - **Trusted Adult Designation**: Designate a trusted adult (Mother, Father, Guardian, Mentor) with verified contact details for emergency reassurance.
@@ -103,13 +96,24 @@ Located in the Support section, this interactive companion offers compassionate,
 - **Confidential Booking Modal**: Direct student-controlled appointment requests.
 - **Ethical Safeguarding Protocol**: Documents consent policies, minimum-necessary data access, and protocols for when home is not a safe contact (directing escalation to neutral child-protection bodies like Childline 1098).
 
-### 8. Study Schedule & Exam Deadlines (Optional — Last Navigation Option)
-Placed as the **last option in the sidebar**, this tool is available strictly if students wish to organize their schedule without academic pressure:
-- Pre-configured syllabus templates for JEE, NEET, and UPSC.
-- Daily & weekly schedule planner with low-friction task tracking.
-- **Spaced Repetition Scheduler**: Ebbinghaus forgetting curve intervals (Day 1, 3, 7, 21 review cycles).
-- **Mock Test Tracker & Mistake Notebook**: Categorizes errors (*Conceptual Error*, *Calculation Mistake*, *Silly Error*, *Time Crunch*) with key takeaway formulas to review before exam day.
-- **Backlog Buster**: Prioritizes backlog chapters by urgency (High, Medium, Low) with estimated recovery hours.
+### 8. To-Do Planner (Daily & Monthly with Alarms & Notifications)
+Placed as the **last option in the sidebar**, this tool replaces separate study/exam schedules with a gentle, self-paced planner:
+- **No Syllabus Tracking**: Completely eliminates PCM syllabus percentages, progress bars, and completion questionnaires. Students are never interrogated about how much syllabus they completed.
+- **Daily Planner Mode**:
+  - Add, edit, delete, and check off tasks.
+  - Details: Title, optional description, date, start time, priority (High, Medium, Low), and category (Study, Revision, Practice, Personal & Rest, Other).
+  - Status filters: All, Pending, Completed, and Overdue tasks.
+  - Rescheduling: Quick "Move to Tomorrow", "Move to Today", or custom date selector for unfinished tasks.
+- **Monthly Planner Mode**:
+  - Full interactive monthly calendar grid with month navigation and "Current Month" jump.
+  - Priority-coded task dots and badges on scheduled dates.
+  - Select any day to view that day's scheduled tasks and add tasks directly for that date.
+  - Monthly metrics: Total scheduled, completed, pending, and completion rate.
+- **Notification & Alarm System**:
+  - Customizable reminder offsets (At start time, 5, 10, 15, 30 minutes before).
+  - Web Audio harmonic arpeggio alarm chime when tasks are due.
+  - Browser notifications using the native Web Notifications API (permission requested only upon explicit student activation; falls back gracefully to in-app alerts if denied).
+  - In-app reminder toast with "Mark Done", "Snooze 5 Min", and "Dismiss" buttons.
 
 ### 9. Parent & Counsellor Dashboards
 - **Parent View**: Authorized study consistency streak and milestones, transparent privacy assurance regarding private journals, and "Parent Guide to Exam Stress" (guidance on healthy dialogue vs. comparison traps).
@@ -131,7 +135,7 @@ mindspring/
 ├── client/                     # Frontend Application (React + Vite + TypeScript)
 │   ├── src/
 │   │   ├── components/         # Navbar, Sidebar, CrisisModal, PomodoroModal
-│   │   ├── pages/              # StudentDashboard (Sanctuary), AcademicHub (Optional Schedule),
+│   │   ├── pages/              # StudentDashboard (Sanctuary), TodoPlanner (Daily & Monthly),
 │   │   │                       # WellbeingCenter, AICompanion, WellbeingGames,
 │   │   │                       # SupportDirectory (with Teacher Contacts), ParentDashboard, ProfileSettings
 │   │   ├── services/           # api.ts (backend API client with fallback defaults)

@@ -35,13 +35,22 @@ export interface User {
   studentName?: string;
 }
 
-export interface SubjectProgress {
+export type TaskPriority = 'low' | 'medium' | 'high';
+export type TaskCategory = 'Study' | 'Revision' | 'Practice' | 'Personal' | 'Other';
+
+export interface TodoTask {
   id: string;
-  name: string;
-  progress: number;
-  totalChapters: number;
-  completedChapters: number;
-  color?: string;
+  studentId: string;
+  title: string;
+  description?: string;
+  date: string; // YYYY-MM-DD
+  startTime?: string; // HH:MM (24-hr format e.g. "09:30" or "16:00")
+  priority: TaskPriority;
+  category: TaskCategory;
+  reminderMinutesBefore?: number; // 0, 5, 10, 15, 30
+  completed: boolean;
+  createdAt: string;
+  notified?: boolean;
 }
 
 export interface StudyTask {

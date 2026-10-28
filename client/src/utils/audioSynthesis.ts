@@ -40,6 +40,30 @@ class SoundscapeSynthesizer {
     }
   }
 
+  // Play a gentle 3-tone chime alarm for task reminders (C5 -> E5 -> G5)
+  playAlarmTone() {
+    try {
+      this.initContext();
+      if (!this.ctx) return;
+      const notes = [523.25, 659.25, 783.99]; // C5, E5, G5
+      const now = this.ctx.currentTime;
+      notes.forEach((freq, idx) => {
+        const osc = this.ctx!.createOscillator();
+        const gain = this.ctx!.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, now + idx * 0.22);
+        gain.gain.setValueAtTime(0.25, now + idx * 0.22);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + idx * 0.22 + 0.6);
+        osc.connect(gain);
+        gain.connect(this.ctx!.destination);
+        osc.start(now + idx * 0.22);
+        osc.stop(now + idx * 0.22 + 0.6);
+      });
+    } catch (e) {
+      console.warn('Alarm tone failed:', e);
+    }
+  }
+
   // Start continuous ambient soundscape
   playAmbient(type: 'rain' | 'bowl' | 'waves' | 'breeze') {
     this.stopAmbient();

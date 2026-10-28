@@ -8,7 +8,7 @@ import {
   Users, 
   Settings, 
   Sparkles,
-  CalendarDays
+  CheckSquare
 } from 'lucide-react';
 import { Role } from '../types';
 
@@ -19,14 +19,14 @@ interface SidebarProps {
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({ currentTab, onTabChange, userRole = 'student' }) => {
-  // Ordered primarily for Mental Wellbeing; Schedule is placed as the LAST option
+  // Ordered primarily for Mental Wellbeing; To-Do Planner is placed as the LAST option
   const mainNavItems = [
     { id: 'dashboard', label: 'Wellness Sanctuary', icon: Heart, badge: 'Home' },
     { id: 'companion', label: 'AI Wellbeing Companion', icon: Bot, badge: 'Counselling' },
     { id: 'games', label: 'Wellbeing Games (4)', icon: Gamepad2 },
     { id: 'wellbeing', label: 'Reflective Journal & Trends', icon: BookHeart },
     { id: 'support', label: 'Trusted Circle & Teachers', icon: ShieldCheck },
-    { id: 'academic', label: 'Study & Exam Schedule', icon: CalendarDays, badge: 'Optional' }
+    { id: 'planner', label: 'To-Do Planner', icon: CheckSquare, badge: 'Daily & Monthly' }
   ];
 
   const roleNavItems = [
@@ -46,27 +46,25 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentTab, onTabChange, userR
           <nav className="space-y-1">
             {mainNavItems.map(item => {
               const Icon = item.icon;
-              const isActive = currentTab === item.id;
+              const isActive = currentTab === item.id || (item.id === 'planner' && currentTab === 'academic');
               return (
                 <button
                   key={item.id}
                   onClick={() => onTabChange(item.id)}
                   className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all ${
                     isActive
-                      ? item.id === 'academic' 
-                        ? 'bg-slate-700 text-white shadow-md'
-                        : 'bg-lavender-600 text-white shadow-md shadow-lavender-300'
+                      ? 'bg-lavender-600 text-white shadow-md shadow-lavender-300'
                       : 'text-slate-600 hover:bg-lavender-50 hover:text-lavender-900'
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <Icon className={`w-4 h-4 ${isActive ? 'text-white' : item.id === 'academic' ? 'text-slate-400' : 'text-slate-500'}`} />
-                    <span className={item.id === 'academic' ? 'text-slate-500' : ''}>{item.label}</span>
+                    <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-slate-500'}`} />
+                    <span>{item.label}</span>
                   </div>
                   {item.badge && !isActive && (
                     <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${
-                      item.badge === 'Optional' 
-                        ? 'bg-slate-100 text-slate-500' 
+                      item.badge === 'Daily & Monthly' 
+                        ? 'bg-lavender-50 text-lavender-700 border border-lavender-100' 
                         : 'bg-sage-100 text-sage-800'
                     }`}>
                       {item.badge}
