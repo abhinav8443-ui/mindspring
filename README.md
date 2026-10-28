@@ -1,6 +1,13 @@
 # MindSpring 🌸
 ### Student Mental Wellness & Competitive Exam Preparation Platform
 
+[![GitHub Pages Deployment](https://img.shields.io/badge/Live%20Demo-GitHub%20Pages-success?style=for-the-badge&logo=github)](https://abhinav8443-ui.github.io/mindspring/)
+[![Repository](https://img.shields.io/badge/GitHub-Repository-blue?style=for-the-badge&logo=github)](https://github.com/abhinav8443-ui/mindspring)
+[![License: MIT](https://img.shields.io/badge/License-MIT-purple.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
+
+> 🌐 **Live Website**: [https://abhinav8443-ui.github.io/mindspring/](https://abhinav8443-ui.github.io/mindspring/)  
+> 📁 **GitHub Repository**: [https://github.com/abhinav8443-ui/mindspring](https://github.com/abhinav8443-ui/mindspring)
+
 MindSpring is a full-stack, free-to-use mental wellness and academic organization platform specifically crafted for students preparing for high-pressure competitive exams such as **JEE Main & Advanced, NEET-UG, UPSC CSE, CA Foundation**, and state board examinations.
 
 The platform is anchored in a dual philosophy: **academic mastery requires sustainable emotional wellbeing**. Rather than promoting frantic midnight cramming or using anxiety as a motivator, MindSpring provides students with structured tools for syllabus management, spaced repetition, mistake analysis, and self-compassion, paired with an interactive **AI Wellbeing Companion**, **4 Interactive Wellbeing Games**, and an **Ethical Safeguarding & Trusted Adult Network**.
