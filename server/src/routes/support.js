@@ -94,4 +94,59 @@ router.get('/crisis-helplines', (req, res) => {
   });
 });
 
+let TEACHERS = [
+  {
+    id: 'tch-1',
+    name: 'Prof. Vikram Sen',
+    subject: 'Physics & Mechanics',
+    schoolOrCoaching: 'Apex Institute / Super-30 Cohort',
+    phone: '+91 98234 56789',
+    email: 'vikram.sen@faculty.demo',
+    availableHours: 'Mon-Fri 4:30 PM - 6:00 PM',
+    notes: 'Approachable for pacing fears and conceptual doubt clearing. Always reminds students to sleep 7 hours.',
+    isTrustedMentor: true
+  },
+  {
+    id: 'tch-2',
+    name: 'Mrs. Geeta Krishnan',
+    subject: 'Mathematics & Calculus',
+    schoolOrCoaching: 'Delhi Public School / Advanced Batch',
+    phone: '+91 98345 67890',
+    email: 'geeta.krishnan@faculty.demo',
+    availableHours: 'Tue & Thu 5:00 PM - 7:00 PM',
+    notes: 'Patient mentor who helps untangle test panic and formula slips without criticism.',
+    isTrustedMentor: true
+  }
+];
+
+router.get('/teachers', (req, res) => {
+  res.json({ teachers: TEACHERS });
+});
+
+router.post('/teachers', (req, res) => {
+  const { name, subject, schoolOrCoaching, phone, email, availableHours, notes } = req.body;
+  const newTch = {
+    id: `tch-${Date.now()}`,
+    name: name || 'Teacher',
+    subject: subject || 'Subject Guide',
+    schoolOrCoaching: schoolOrCoaching || '',
+    phone: phone || '',
+    email: email || '',
+    availableHours: availableHours || 'By appointment',
+    notes: notes || '',
+    isTrustedMentor: true
+  };
+  TEACHERS.push(newTch);
+  res.json({ success: true, teacher: newTch });
+});
+
+router.delete('/teachers/:id', (req, res) => {
+  const idx = TEACHERS.findIndex(t => t.id === req.params.id);
+  if (idx >= 0) {
+    TEACHERS.splice(idx, 1);
+    return res.json({ success: true });
+  }
+  res.status(404).json({ error: 'Teacher contact not found' });
+});
+
 export default router;

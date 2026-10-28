@@ -8,7 +8,6 @@ import { WellbeingCenter } from './pages/WellbeingCenter';
 import { AICompanion } from './pages/AICompanion';
 import { WellbeingGames } from './pages/WellbeingGames';
 import { SupportDirectory } from './pages/SupportDirectory';
-import { TeacherDashboard } from './pages/TeacherDashboard';
 import { ParentDashboard } from './pages/ParentDashboard';
 import { ProfileSettings } from './pages/ProfileSettings';
 import { User, Role } from './types';
@@ -55,9 +54,7 @@ export function App() {
       const res = await api.switchRole(role, userId);
       if (res.success) {
         setCurrentUser(res.user);
-        if (role === 'teacher') {
-          setCurrentTab('teacher-view');
-        } else if (role === 'parent') {
+        if (role === 'parent') {
           setCurrentTab('parent-view');
         } else {
           setCurrentTab('dashboard');
@@ -139,10 +136,6 @@ export function App() {
               currentUser={currentUser}
               onOpenCrisisModal={() => setIsCrisisModalOpen(true)}
             />
-          )}
-
-          {currentTab === 'teacher-view' && (
-            <TeacherDashboard />
           )}
 
           {currentTab === 'parent-view' && (

@@ -8,9 +8,11 @@
 > 🌐 **Live Website**: [https://abhinav8443-ui.github.io/mindspring/](https://abhinav8443-ui.github.io/mindspring/)  
 > 📁 **GitHub Repository**: [https://github.com/abhinav8443-ui/mindspring](https://github.com/abhinav8443-ui/mindspring)
 
-MindSpring is a full-stack, free-to-use mental wellness and academic organization platform specifically crafted for students preparing for high-pressure competitive exams such as **JEE Main & Advanced, NEET-UG, UPSC CSE, CA Foundation**, and state board examinations.
+MindSpring is a full-stack, free-to-use **student mental wellness platform** specifically crafted for students preparing for high-pressure competitive exams such as **JEE Main & Advanced, NEET-UG, UPSC CSE, CA Foundation**, and state board examinations.
 
-The platform is anchored in a dual philosophy: **academic mastery requires sustainable emotional wellbeing**. Rather than promoting frantic midnight cramming or using anxiety as a motivator, MindSpring provides students with structured tools for syllabus management, spaced repetition, mistake analysis, and self-compassion, paired with an interactive **AI Wellbeing Companion**, **4 Interactive Wellbeing Games**, and an **Ethical Safeguarding & Trusted Adult Network**.
+> **Our Core Philosophy**: **MindSpring is solely made for students' mental wellbeing, not studies.** When students visit MindSpring, they are entering a calm, judgment-free sanctuary — they do not need to study or face academic pressure here. While the platform includes an optional schedule and exam deadline tracker to keep track of key dates without mental clutter, this is deliberately placed as the **last option** in the navigation menu.
+
+The platform provides students with an interactive **AI Wellbeing Companion**, **4 Interactive Wellbeing Games**, a **Mental Wellness Sanctuary**, an **Ethical Safeguarding & Trusted Adult Network**, and a directory to keep **Teachers' & Academic Mentors' Contact Info** readily available whenever guidance is needed.
 
 ---
 
@@ -23,25 +25,25 @@ The platform is anchored in a dual philosophy: **academic mastery requires susta
 - Accessible form validation, empty states, loading indicators, and celebration confetti for completed milestones.
 
 ### 2. Multi-Role Authentication & Demo Mode
-- Instant **Demo Role Switcher** in the top navigation bar to test every persona without tedious setup:
-  - **Aarav Sharma**: 17 y/o JEE Main & Advanced 2027 Aspirant
-  - **Priya Patel**: 18 y/o NEET-UG 2027 Aspirant
+- Instant **Demo Role Switcher** in the top navigation bar to test personas without tedious setup:
+  - **Aarav Sharma**: 17 y/o JEE Main & Advanced Aspirant
+  - **Priya Patel**: 18 y/o NEET-UG Aspirant
   - **Mrs. Sunita Sharma**: Parent / Guardian
-  - **Prof. Vikram Sen**: Physics Faculty & Academic Mentor
   - **Dr. Ananya Roy, M.Phil**: Certified Adolescent Psychologist (RCI Licensed)
   - **Admin**: Safeguarding & Compliance Officer
 - Registration with age group, exam goal, target rank/score, and daily study targets.
 
-### 3. Student Dashboard
-- Welcoming personalized banner with dynamic exam countdowns.
-- Today's study plan with completion toggles and one-click **Pomodoro Focus Launcher** (25m Focus / 5m Mindful Rest with harmonic audio chime).
-- Subject-wise syllabus completion bars with "+1 Chapter Done" action.
-- Upcoming mock tests and error summaries.
-- Daily mood check-in widget with energy scale (1–5) and custom reflections.
-- Recommended mindful micro-breaks (20-20-20 eye rest, hydration cues, vagus nerve breathing).
-- **Strict Separation**: Academic metrics and mental wellbeing indicators are kept visually distinct. Students are **never ranked by mental health scores**.
+### 3. Student Mental Wellness Sanctuary (Zero-Pressure Landing Page)
+When students open MindSpring, they land on a peaceful sanctuary designed to decompress tension:
+- **Interactive 60s Vagus Breathing Orb**: Rhythmic, visual inhale/hold/exhale pacing with live progress timer.
+- **Ambient Soundscapes Generator**: Synthesizes Gentle Rain, Tibetan Singing Bowl, and Forest Breeze via native Web Audio API oscillators.
+- **Daily Mood & Energy Check-in**: 5-point emotional status selector with supportive affirmations.
+- **AI Companion Quick Lounge**: Quick conversation prompt cards to chat with their chosen companion.
+- **Daily Mindful Affirmations & Grounding Tips**.
+- **Optional Schedule Access**: A gentle, subtle link pointing to the study schedule as the last option if they ever wish to reference exam dates.
+- **Strict Separation**: Students are **never ranked by mental health scores**.
 
-### 4. Mental Wellbeing Sanctuary (Non-Diagnostic)
+### 4. Mental Wellbeing Reflection (Non-Diagnostic)
 - **Weekly Reflection Questionnaire**: Adapted responsibly from validated youth instruments (PHQ-A / GAD-7) into 7 student-friendly dimensions: mood, stress, sleep, energy, social connection, academic pressure, and access to support.
 - **Wellbeing Harmony Index (0–100)**: Non-clinical, supportive metric designed solely for self-awareness.
 - **Historical Check-in Trends**: Visual tracking of recovery rhythms over weeks.
@@ -94,15 +96,24 @@ Located in the Support section, this interactive companion offers compassionate,
 - **Mock Test Tracker & Mistake Notebook**: Categorizes errors (*Conceptual Error*, *Calculation Mistake*, *Silly Error*, *Time Crunch*) with key takeaway formulas to review before exam day.
 - **Backlog Buster**: Prioritizes backlog chapters by urgency (High, Medium, Low) with estimated recovery hours.
 
-### 8. Trusted Adult & Professional Support
-- Designate a trusted adult (Mother, Father, Guardian, Mentor Teacher) with contact details and transparent crisis authorization.
+### 7. Trusted Circle, Counsellors & Teachers' Contact Info
+- **Student's Teachers & Academic Mentors**: A dedicated section where students can add and manage contact information for their teachers and academic guides (phone number, email, doubt-clearing hours, and personal mentor guidance notes). Offers instant one-click Call and Email actions.
+- **Trusted Adult Designation**: Designate a trusted adult (Mother, Father, Guardian, Mentor) with verified contact details for emergency reassurance.
 - **Certified Counsellor Directory**: Profiles of licensed clinical psychologists and adolescent counsellors (e.g., Dr. Ananya Roy, M.Phil NIMHANS) with bio, languages, and ratings.
 - **Confidential Booking Modal**: Direct student-controlled appointment requests.
 - **Ethical Safeguarding Protocol**: Documents consent policies, minimum-necessary data access, and protocols for when home is not a safe contact (directing escalation to neutral child-protection bodies like Childline 1098).
 
-### 9. Parent & Teacher Dashboards
-- **Teacher View**: Assigned batches, syllabus coverage, mock test trends, pedagogical guides for detecting burnout, and authorized counselling referral tracking.
+### 8. Study Schedule & Exam Deadlines (Optional — Last Navigation Option)
+Placed as the **last option in the sidebar**, this tool is available strictly if students wish to organize their schedule without academic pressure:
+- Pre-configured syllabus templates for JEE, NEET, and UPSC.
+- Daily & weekly schedule planner with low-friction task tracking.
+- **Spaced Repetition Scheduler**: Ebbinghaus forgetting curve intervals (Day 1, 3, 7, 21 review cycles).
+- **Mock Test Tracker & Mistake Notebook**: Categorizes errors (*Conceptual Error*, *Calculation Mistake*, *Silly Error*, *Time Crunch*) with key takeaway formulas to review before exam day.
+- **Backlog Buster**: Prioritizes backlog chapters by urgency (High, Medium, Low) with estimated recovery hours.
+
+### 9. Parent & Counsellor Dashboards
 - **Parent View**: Authorized study consistency streak and milestones, transparent privacy assurance regarding private journals, and "Parent Guide to Exam Stress" (guidance on healthy dialogue vs. comparison traps).
+- **Counsellor / Admin View**: Authorized referrals, aggregate wellness metrics, and safeguarding logs. (Note: Student monitoring teacher dashboard has been intentionally removed in favor of student-controlled teacher contacts).
 
 ### 10. Privacy, Security & Responsible AI
 - Aligned with the **Digital Personal Data Protection (DPDP) Act of India**.
@@ -120,9 +131,9 @@ mindspring/
 ├── client/                     # Frontend Application (React + Vite + TypeScript)
 │   ├── src/
 │   │   ├── components/         # Navbar, Sidebar, CrisisModal, PomodoroModal
-│   │   ├── pages/              # StudentDashboard, AcademicHub, WellbeingCenter,
-│   │   │                       # AICompanion, WellbeingGames, SupportDirectory,
-│   │   │                       # TeacherDashboard, ParentDashboard, ProfileSettings
+│   │   ├── pages/              # StudentDashboard (Sanctuary), AcademicHub (Optional Schedule),
+│   │   │                       # WellbeingCenter, AICompanion, WellbeingGames,
+│   │   │                       # SupportDirectory (with Teacher Contacts), ParentDashboard, ProfileSettings
 │   │   ├── services/           # api.ts (backend API client with fallback defaults)
 │   │   ├── types/              # TypeScript interfaces & types
 │   │   └── utils/              # audioSynthesis.ts (Web Audio ambient synthesizer)

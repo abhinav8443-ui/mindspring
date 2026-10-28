@@ -3,56 +3,6 @@ import { USERS, SYLLABUS_DATA, MOCK_TESTS, CONSULTATION_REQUESTS, AUDIT_LOGS } f
 
 const router = express.Router();
 
-// Teacher Dashboard
-router.get('/teacher', (req, res) => {
-  const teacherStudents = USERS.filter(u => u.role === 'student');
-  const studentSummaries = teacherStudents.map(student => {
-    const syllabus = SYLLABUS_DATA[student.id] || [];
-    const avgProgress = syllabus.length 
-      ? Math.round(syllabus.reduce((acc, s) => acc + s.progress, 0) / syllabus.length)
-      : 0;
-    const tests = MOCK_TESTS[student.id] || [];
-    const latestTest = tests[0] || null;
-
-    return {
-      id: student.id,
-      name: student.name,
-      examGoal: student.examGoal,
-      avgProgress,
-      latestTestScore: latestTest ? `${latestTest.score} / ${latestTest.totalMarks}` : 'N/A',
-      latestPercentile: latestTest ? latestTest.percentile : null,
-      supportReferralStatus: student.id === 'student-1' ? 'Human-Reviewed Support Initiated' : 'Stable'
-    };
-  });
-
-  res.json({
-    teacher: {
-      name: 'Prof. Vikram Sen',
-      subject: 'Physics & Mechanics',
-      batches: ['JEE Advanced 2027 Super-30', 'Class 12 Advanced Scholars']
-    },
-    students: studentSummaries,
-    pedagogicalGuidance: [
-      {
-        title: 'Constructive Mock Review',
-        tip: 'Focus on question-selection strategy and mistake categorization rather than overall marks.'
-      },
-      {
-        title: 'Spotting Silent Burnout',
-        tip: 'If a high-performing student suddenly stops asking questions or misses homework, check in with care rather than reprimand.'
-      }
-    ],
-    authorizedReferrals: [
-      {
-        studentName: 'Aarav Sharma',
-        date: '2026-10-26',
-        topic: 'Pacing anxiety in timed 3-hour tests',
-        status: 'Referred to Dr. Ananya Roy (Counsellor)'
-      }
-    ]
-  });
-});
-
 // Parent Dashboard
 router.get('/parent', (req, res) => {
   const student = USERS.find(u => u.id === 'student-1');

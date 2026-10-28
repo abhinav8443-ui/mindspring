@@ -15,7 +15,6 @@ export const Navbar: React.FC<NavbarProps> = ({ currentUser, onRoleSwitch, onOpe
     { role: 'student', userId: 'student-1', label: 'Aarav Sharma (JEE Aspirant)', badge: 'Student' },
     { role: 'student', userId: 'student-2', label: 'Priya Patel (NEET Aspirant)', badge: 'Student' },
     { role: 'parent', userId: 'parent-1', label: 'Mrs. Sunita Sharma (Parent)', badge: 'Parent' },
-    { role: 'teacher', userId: 'teacher-1', label: 'Prof. Vikram Sen (Physics Mentor)', badge: 'Teacher' },
     { role: 'counsellor', userId: 'counsellor-1', label: 'Dr. Ananya Roy (Counsellor)', badge: 'Counsellor' },
     { role: 'admin', userId: 'admin-1', label: 'Safeguarding Desk (Admin)', badge: 'Admin' }
   ];

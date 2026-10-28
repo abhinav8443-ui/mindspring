@@ -4,15 +4,19 @@ import {
   Users, 
   HeartHandshake, 
   PhoneCall, 
+  Mail, 
   Calendar, 
   CheckCircle2, 
   AlertCircle, 
   Clock, 
-  Star,
-  ExternalLink,
-  Plus
+  Star, 
+  ExternalLink, 
+  Plus, 
+  Trash2, 
+  GraduationCap, 
+  BookOpen 
 } from 'lucide-react';
-import { User, Counsellor, ConsultationRequest } from '../types';
+import { User, Counsellor, ConsultationRequest, TeacherContact } from '../types';
 import { api } from '../services/api';
 
 interface SupportDirectoryProps {
@@ -24,6 +28,7 @@ export const SupportDirectory: React.FC<SupportDirectoryProps> = ({ currentUser,
   const [counsellors, setCounsellors] = useState<Counsellor[]>([]);
   const [requests, setRequests] = useState<ConsultationRequest[]>([]);
   const [trustedAdult, setTrustedAdult] = useState<any>(null);
+  const [teachers, setTeachers] = useState<TeacherContact[]>([]);
   
   // Trusted adult edit form
   const [adultName, setAdultName] = useState('');
@@ -32,6 +37,16 @@ export const SupportDirectory: React.FC<SupportDirectoryProps> = ({ currentUser,
   const [adultEmail, setAdultEmail] = useState('');
   const [notifyOnCrisis, setNotifyOnCrisis] = useState(true);
   const [isSavedAdult, setIsSavedAdult] = useState(false);
+
+  // New Teacher Form
+  const [showAddTeacher, setShowAddTeacher] = useState(false);
+  const [tchName, setTchName] = useState('');
+  const [tchSubject, setTchSubject] = useState('Physics');
+  const [tchInstitute, setTchInstitute] = useState('');
+  const [tchPhone, setTchPhone] = useState('');
+  const [tchEmail, setTchEmail] = useState('');
+  const [tchHours, setTchHours] = useState('Mon-Fri 4:00 PM - 6:00 PM');
+  const [tchNotes, setTchNotes] = useState('');
 
   // Booking modal state
   const [selectedCounsellor, setSelectedCounsellor] = useState<Counsellor | null>(null);
@@ -46,13 +61,15 @@ export const SupportDirectory: React.FC<SupportDirectoryProps> = ({ currentUser,
   const loadSupportData = async () => {
     try {
       const studentId = currentUser?.id || 'student-1';
-      const [counRes, reqRes, adultRes] = await Promise.all([
+      const [counRes, reqRes, adultRes, tchRes] = await Promise.all([
         api.getCounsellors(),
         api.getRequests(studentId),
-        api.getTrustedAdult(studentId)
+        api.getTrustedAdult(studentId),
+        api.getTeachers(studentId)
       ]);
       setCounsellors(counRes.counsellors || []);
       setRequests(reqRes.requests || []);
+      setTeachers(tchRes.teachers || []);
       if (adultRes.trustedAdult) {
         setTrustedAdult(adultRes.trustedAdult);
         setAdultName(adultRes.trustedAdult.name || '');
@@ -83,6 +100,45 @@ export const SupportDirectory: React.FC<SupportDirectoryProps> = ({ currentUser,
       }
     } catch (err) {
       console.error('Failed to save adult:', err);
+    }
+  };
+
+  const handleAddTeacher = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!tchName || !tchSubject) return;
+    try {
+      const res = await api.addTeacher({
+        name: tchName,
+        subject: tchSubject,
+        schoolOrCoaching: tchInstitute,
+        phone: tchPhone,
+        email: tchEmail,
+        availableHours: tchHours,
+        notes: tchNotes,
+        isTrustedMentor: true
+      }, currentUser?.id);
+      if (res.success) {
+        setTeachers(prev => [...prev, res.teacher]);
+        setShowAddTeacher(false);
+        setTchName('');
+        setTchInstitute('');
+        setTchPhone('');
+        setTchEmail('');
+        setTchNotes('');
+      }
+    } catch (err) {
+      console.error('Failed to add teacher:', err);
+    }
+  };
+
+  const handleDeleteTeacher = async (id: string) => {
+    try {
+      const res = await api.deleteTeacher(id, currentUser?.id);
+      if (res.success) {
+        setTeachers(prev => prev.filter(t => t.id !== id));
+      }
+    } catch (err) {
+      console.error('Failed to delete teacher:', err);
     }
   };
 
@@ -118,11 +174,11 @@ export const SupportDirectory: React.FC<SupportDirectoryProps> = ({ currentUser,
         <div>
           <div className="flex items-center gap-2 text-lavender-700 font-semibold text-xs mb-1">
             <ShieldCheck className="w-4 h-4" />
-            <span>Human Support & Safeguarding System</span>
+            <span>Human Support Network & Guidance Directory</span>
           </div>
-          <h1 className="text-2xl font-extrabold text-slate-800">Trusted Adult & Professional Care</h1>
+          <h1 className="text-2xl font-extrabold text-slate-800">Support & Trusted Care Circle</h1>
           <p className="text-xs text-slate-500">
-            Real human psychologists and verified guardians who support you throughout your competitive exam preparation.
+            Keep your trusted adults, teachers, and certified adolescent counsellors easily reachable whenever you need human connection.
           </p>
         </div>
 
@@ -135,7 +191,204 @@ export const SupportDirectory: React.FC<SupportDirectoryProps> = ({ currentUser,
         </button>
       </div>
 
-      {/* Grid: Left Trusted Adult & Safeguarding, Right Counsellor Directory */}
+      {/* 1. Student's Teachers' Contact Information (Prominent Section) */}
+      <div className="bg-white rounded-3xl p-6 sm:p-8 border border-lavender-100 shadow-card space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <div className="flex items-center gap-2 text-sage-800 font-bold text-sm">
+              <GraduationCap className="w-5 h-5 text-sage-600" />
+              <span>My Teachers & Academic Mentors</span>
+            </div>
+            <p className="text-xs text-slate-500 mt-1">
+              Store your school and coaching teachers' contact info so you can reach out for guidance on tough topics, mock feedback, or reassurance.
+            </p>
+          </div>
+          <button
+            onClick={() => setShowAddTeacher(!showAddTeacher)}
+            className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-sage-600 hover:bg-sage-700 text-white font-bold text-xs shadow-sm transition-all shrink-0"
+          >
+            <Plus className="w-4 h-4" />
+            <span>+ Add Teacher Contact</span>
+          </button>
+        </div>
+
+        {/* Add Teacher Form */}
+        {showAddTeacher && (
+          <form onSubmit={handleAddTeacher} className="p-5 rounded-2xl bg-sage-50/70 border border-sage-200 space-y-4 animate-in fade-in">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-sage-900">Add Teacher / Mentor Information</h4>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <label className="text-[11px] font-bold text-slate-600 block mb-1">Teacher's Name</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Prof. Vikram Sen"
+                  value={tchName}
+                  onChange={e => setTchName(e.target.value)}
+                  className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 bg-white"
+                  required
+                />
+              </div>
+              <div>
+                <label className="text-[11px] font-bold text-slate-600 block mb-1">Subject</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Physics, Mathematics, Biology"
+                  value={tchSubject}
+                  onChange={e => setTchSubject(e.target.value)}
+                  className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 bg-white"
+                  required
+                />
+              </div>
+              <div>
+                <label className="text-[11px] font-bold text-slate-600 block mb-1">School / Coaching Institute</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Apex Coaching / DPS R.K. Puram"
+                  value={tchInstitute}
+                  onChange={e => setTchInstitute(e.target.value)}
+                  className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 bg-white"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <label className="text-[11px] font-bold text-slate-600 block mb-1">Phone Number</label>
+                <input
+                  type="tel"
+                  placeholder="+91 98234 56789"
+                  value={tchPhone}
+                  onChange={e => setTchPhone(e.target.value)}
+                  className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 bg-white"
+                />
+              </div>
+              <div>
+                <label className="text-[11px] font-bold text-slate-600 block mb-1">Email</label>
+                <input
+                  type="email"
+                  placeholder="teacher@school.edu"
+                  value={tchEmail}
+                  onChange={e => setTchEmail(e.target.value)}
+                  className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 bg-white"
+                />
+              </div>
+              <div>
+                <label className="text-[11px] font-bold text-slate-600 block mb-1">Available Hours / Doubt Timing</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Mon-Fri 4:30 PM - 6:00 PM"
+                  value={tchHours}
+                  onChange={e => setTchHours(e.target.value)}
+                  className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 bg-white"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="text-[11px] font-bold text-slate-600 block mb-1">Mentor Note / Guidance Tip</label>
+              <input
+                type="text"
+                placeholder="e.g. Very patient listener, encourages asking basic doubt questions"
+                value={tchNotes}
+                onChange={e => setTchNotes(e.target.value)}
+                className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 bg-white"
+              />
+            </div>
+
+            <div className="flex justify-end gap-2 pt-1">
+              <button
+                type="button"
+                onClick={() => setShowAddTeacher(false)}
+                className="px-3.5 py-1.5 text-xs text-slate-500 hover:bg-white rounded-xl"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="px-4 py-1.5 rounded-xl bg-sage-600 text-white font-bold text-xs shadow-sm"
+              >
+                Save Teacher Contact
+              </button>
+            </div>
+          </form>
+        )}
+
+        {/* Teachers Cards List */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {teachers.map(tch => (
+            <div key={tch.id} className="p-5 rounded-3xl border border-slate-200 hover:border-sage-300 hover:shadow-md transition-all bg-white flex flex-col justify-between">
+              <div>
+                <div className="flex items-start justify-between">
+                  <div>
+                    <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-sage-100 text-sage-800">
+                      {tch.subject}
+                    </span>
+                    <h3 className="font-bold text-base text-slate-800 mt-2">{tch.name}</h3>
+                    <p className="text-xs text-slate-500">{tch.schoolOrCoaching}</p>
+                  </div>
+                  <button
+                    onClick={() => handleDeleteTeacher(tch.id)}
+                    className="text-slate-300 hover:text-rose-600 p-1 transition-colors"
+                    title="Remove teacher contact"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+
+                {tch.notes && (
+                  <p className="text-xs text-slate-600 mt-3 p-2.5 rounded-xl bg-slate-50 border border-slate-100 leading-relaxed italic">
+                    "{tch.notes}"
+                  </p>
+                )}
+
+                <div className="mt-4 space-y-1.5 text-xs text-slate-600">
+                  {tch.availableHours && (
+                    <div className="flex items-center gap-1.5 text-[11px] text-slate-500">
+                      <Clock className="w-3.5 h-3.5 text-slate-400" />
+                      <span>Available: {tch.availableHours}</span>
+                    </div>
+                  )}
+                  {tch.phone && (
+                    <div className="flex items-center gap-1.5 text-[11px] text-slate-600 font-mono">
+                      <PhoneCall className="w-3.5 h-3.5 text-slate-400" />
+                      <span>{tch.phone}</span>
+                    </div>
+                  )}
+                  {tch.email && (
+                    <div className="flex items-center gap-1.5 text-[11px] text-slate-600">
+                      <Mail className="w-3.5 h-3.5 text-slate-400" />
+                      <span className="truncate">{tch.email}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="mt-5 pt-3 border-t border-slate-100 flex items-center gap-2">
+                {tch.phone && (
+                  <a
+                    href={`tel:${tch.phone.replace(/[^0-9+]/g, '')}`}
+                    className="flex-1 py-2 px-3 rounded-xl bg-sage-50 hover:bg-sage-100 text-sage-800 font-bold text-xs flex items-center justify-center gap-1.5 transition-colors border border-sage-200"
+                  >
+                    <PhoneCall className="w-3.5 h-3.5" />
+                    <span>Call Teacher</span>
+                  </a>
+                )}
+                {tch.email && (
+                  <a
+                    href={`mailto:${tch.email}`}
+                    className="flex-1 py-2 px-3 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-700 font-bold text-xs flex items-center justify-center gap-1.5 transition-colors border border-slate-200"
+                  >
+                    <Mail className="w-3.5 h-3.5" />
+                    <span>Send Email</span>
+                  </a>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* 2. Grid: Trusted Adult (Family) & Counsellor Directory */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
         {/* Left Column: Trusted Adult & Safeguarding Protocol */}
@@ -145,10 +398,10 @@ export const SupportDirectory: React.FC<SupportDirectoryProps> = ({ currentUser,
           <div className="bg-white rounded-3xl p-6 border border-lavender-100 shadow-card space-y-4">
             <div className="flex items-center gap-2 text-slate-800">
               <Users className="w-5 h-5 text-lavender-600" />
-              <h2 className="text-base font-bold">Designated Trusted Adult</h2>
+              <h2 className="text-base font-bold">Designated Trusted Adult (Family / Guardian)</h2>
             </div>
             <p className="text-xs text-slate-500 leading-relaxed">
-              Identify a family member or teacher who you trust. We only connect them upon your explicit directive or in immediate life safety escalation.
+              Identify a family member or guardian who you feel safe confiding in. We only contact them upon your explicit directive or in verified life-safety escalation.
             </p>
 
             <form onSubmit={handleSaveAdult} className="space-y-3 pt-2">
@@ -176,7 +429,7 @@ export const SupportDirectory: React.FC<SupportDirectoryProps> = ({ currentUser,
                     <option value="Father">Father</option>
                     <option value="Guardian">Guardian</option>
                     <option value="Older Sibling">Older Sibling</option>
-                    <option value="Favorite Teacher">Mentor / Teacher</option>
+                    <option value="Aunt / Uncle">Aunt / Uncle</option>
                   </select>
                 </div>
                 <div>
@@ -231,7 +484,7 @@ export const SupportDirectory: React.FC<SupportDirectoryProps> = ({ currentUser,
               1. Minimum-Necessary Information Sharing
             </p>
             <p>
-              Your thoughts and journal are shielded. Teachers and parents only see academic milestones unless you explicitly request a joint conference.
+              Your thoughts and private journal remain strictly shielded. Teachers and parents never see confidential wellbeing disclosures.
             </p>
             <p className="font-semibold text-slate-800">
               2. What if home is not a safe contact?

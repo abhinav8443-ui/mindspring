@@ -1,24 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Sparkles, 
-  CheckCircle2, 
-  Circle, 
-  Play, 
-  Calendar, 
-  TrendingUp, 
-  Clock, 
   Heart, 
   Smile, 
   ShieldAlert, 
-  ArrowRight,
-  BookOpen,
-  Coffee,
-  Check,
-  Plus
+  ArrowRight, 
+  Coffee, 
+  Bot, 
+  Gamepad2, 
+  Wind, 
+  Volume2, 
+  VolumeX, 
+  CheckCircle2, 
+  Calendar, 
+  Flame, 
+  BookOpen, 
+  Sun,
+  ShieldCheck,
+  PhoneCall
 } from 'lucide-react';
-import { User, SubjectProgress, StudyTask, MockTest, MoodLog } from '../types';
+import { User, MoodLog } from '../types';
 import { api } from '../services/api';
-import { PomodoroModal } from '../components/PomodoroModal';
+import { soundscapes } from '../utils/audioSynthesis';
 import confetti from 'canvas-confetti';
 
 interface StudentDashboardProps {
@@ -28,373 +31,222 @@ interface StudentDashboardProps {
 }
 
 export const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser, onNavigateTab, onOpenCrisisModal }) => {
-  const [syllabus, setSyllabus] = useState<SubjectProgress[]>([]);
-  const [tasks, setTasks] = useState<StudyTask[]>([]);
-  const [mockTests, setMockTests] = useState<MockTest[]>([]);
-  const [moodLogs, setMoodLogs] = useState<MoodLog[]>([]);
   const [selectedMood, setSelectedMood] = useState<string>('');
   const [moodEnergy, setMoodEnergy] = useState<number>(3);
   const [moodNote, setMoodNote] = useState<string>('');
   const [moodSubmitted, setMoodSubmitted] = useState<boolean>(false);
-  const [activeTaskForTimer, setActiveTaskForTimer] = useState<StudyTask | null>(null);
-  const [isPomodoroOpen, setIsPomodoroOpen] = useState<boolean>(false);
+  const [activeSound, setActiveSound] = useState<string | null>(null);
+
+  // Quick 60-second breathing orb
+  const [breathPhase, setBreathPhase] = useState<'Inhale' | 'Hold' | 'Exhale' | 'Rest'>('Inhale');
+  const [breathCount, setBreathCount] = useState<number>(4);
+  const [isBreathActive, setIsBreathActive] = useState<boolean>(false);
 
   useEffect(() => {
-    loadDashboardData();
-  }, [currentUser]);
-
-  const loadDashboardData = async () => {
-    try {
-      const studentId = currentUser?.id || 'student-1';
-      const [sylRes, taskRes, mockRes, moodRes] = await Promise.all([
-        api.getSyllabus(studentId),
-        api.getTasks(studentId),
-        api.getMockTests(studentId),
-        api.getMoods(studentId)
-      ]);
-      setSyllabus(sylRes.syllabus || []);
-      setTasks(taskRes.tasks || []);
-      setMockTests(mockRes.tests || []);
-      setMoodLogs(moodRes.moodHistory || []);
-    } catch (err) {
-      console.error('Failed to load dashboard data:', err);
+    let interval: any = null;
+    if (isBreathActive) {
+      interval = setInterval(() => {
+        setBreathCount(prev => {
+          if (prev <= 1) {
+            setBreathPhase(curr => {
+              if (curr === 'Inhale') return 'Hold';
+              if (curr === 'Hold') return 'Exhale';
+              if (curr === 'Exhale') return 'Rest';
+              return 'Inhale';
+            });
+            return 4;
+          }
+          return prev - 1;
+        });
+      }, 1000);
     }
-  };
-
-  const handleToggleTask = async (taskId: string) => {
-    try {
-      const res = await api.toggleTask(taskId, currentUser?.id);
-      if (res.success) {
-        setTasks(prev => prev.map(t => t.id === taskId ? res.task : t));
-        if (res.task.completed) {
-          try {
-            confetti({ particleCount: 40, spread: 50, origin: { y: 0.8 } });
-          } catch (e) {}
-        }
-      }
-    } catch (err) {
-      console.error('Failed to toggle task:', err);
-    }
-  };
-
-  const handleIncrementChapter = async (subjectId: string) => {
-    try {
-      const res = await api.incrementSubject(subjectId, currentUser?.id);
-      if (res.success) {
-        setSyllabus(prev => prev.map(s => s.id === subjectId ? res.subject : s));
-      }
-    } catch (err) {
-      console.error('Failed to update chapter:', err);
-    }
-  };
+    return () => clearInterval(interval);
+  }, [isBreathActive]);
 
   const handleMoodSubmit = async () => {
     if (!selectedMood) return;
     try {
-      const res = await api.logMood({
+      await api.logMood({
         mood: selectedMood as any,
         energy: moodEnergy,
         level: selectedMood === 'Great' ? 5 : selectedMood === 'Good' ? 4 : selectedMood === 'Okay' ? 3 : 2,
         note: moodNote,
         tags: [selectedMood]
       }, currentUser?.id);
-      if (res.success) {
-        setMoodSubmitted(true);
-        loadDashboardData();
-      }
+      setMoodSubmitted(true);
+      try {
+        confetti({ particleCount: 40, spread: 50, origin: { y: 0.8 } });
+      } catch (e) {}
     } catch (err) {
       console.error('Failed to submit mood:', err);
     }
   };
 
-  const completedTasksCount = tasks.filter(t => t.completed).length;
-  const totalTasksCount = tasks.length;
-  const taskCompletionPercent = totalTasksCount ? Math.round((completedTasksCount / totalTasksCount) * 100) : 0;
+  const toggleSound = (type: 'rain' | 'bowl' | 'breeze') => {
+    if (activeSound === type) {
+      soundscapes.stopAmbient();
+      setActiveSound(null);
+    } else {
+      soundscapes.playAmbient(type);
+      setActiveSound(type);
+    }
+  };
 
   return (
     <div className="space-y-8 animate-in fade-in duration-300">
       
-      {/* 1. Welcoming Hero Banner */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-lavender-700 via-purple-700 to-indigo-800 p-6 sm:p-8 text-white shadow-xl shadow-lavender-200">
+      {/* 1. Serene Sanctuary Hero Banner */}
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-lavender-700 via-purple-700 to-sage-700 p-6 sm:p-10 text-white shadow-xl shadow-lavender-200">
         <div className="absolute right-0 top-0 bottom-0 w-1/3 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-white/20 via-transparent to-transparent pointer-events-none" />
         <div className="relative z-10 max-w-2xl">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 backdrop-blur-md text-xs font-semibold mb-3 border border-white/20">
-            <Sparkles className="w-3.5 h-3.5 text-lavender-200" />
-            <span>Target Goal: {currentUser?.examGoal || 'JEE Main & Advanced 2027'}</span>
+            <Heart className="w-3.5 h-3.5 fill-rose-300 text-rose-300" />
+            <span>A Safe Mental Sanctuary for Students</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
-            Welcome back, {currentUser?.name?.split(' ')[0] || 'Scholar'}!
+          <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight">
+            Take a deep breath, {currentUser?.name?.split(' ')[0] || 'friend'}.
           </h1>
-          <p className="text-lavender-100 text-xs sm:text-sm mt-2 leading-relaxed">
-            "True preparation isn't about running until you break. It is built on steady habits, honest rest, and self-compassion on hard days."
+          <p className="text-lavender-100 text-xs sm:text-base mt-3 leading-relaxed">
+            You don't have to study right now. MindSpring is your quiet retreat from endless coaching pressure, competition, and mock test panic. You are human first, not a test score.
           </p>
 
           <div className="flex flex-wrap items-center gap-3 mt-6">
             <button
-              onClick={() => setIsPomodoroOpen(true)}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white text-lavender-900 font-bold text-xs sm:text-sm shadow-md hover:bg-lavender-50 transition-all active:scale-95"
+              onClick={() => onNavigateTab('companion')}
+              className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-white text-lavender-900 font-bold text-xs sm:text-sm shadow-md hover:bg-lavender-50 transition-all active:scale-95"
             >
-              <Play className="w-4 h-4 fill-lavender-800 text-lavender-800" />
-              <span>Start 25m Focus Block</span>
+              <Bot className="w-4 h-4 text-lavender-700" />
+              <span>Talk with AI Companion</span>
             </button>
             <button
-              onClick={() => onNavigateTab('companion')}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-lavender-600/60 hover:bg-lavender-600 border border-white/30 text-white font-medium text-xs sm:text-sm backdrop-blur-sm transition-all"
+              onClick={() => onNavigateTab('games')}
+              className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-lavender-600/60 hover:bg-lavender-600 border border-white/30 text-white font-semibold text-xs sm:text-sm backdrop-blur-sm transition-all"
             >
-              <span>Talk with AI Companion</span>
-              <ArrowRight className="w-4 h-4" />
+              <Gamepad2 className="w-4 h-4" />
+              <span>Play Calming Wellbeing Games</span>
             </button>
           </div>
         </div>
       </div>
 
-      {/* 2. Top Stats Overview */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-white p-4 rounded-2xl border border-lavender-100 shadow-soft">
-          <div className="flex items-center justify-between text-slate-500 mb-2">
-            <span className="text-xs font-semibold">Today's Tasks</span>
-            <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+      {/* 2. Quick Ambient Soundscape & Breath Reset Bar */}
+      <div className="bg-white rounded-3xl p-5 border border-lavender-100 shadow-soft flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-2xl bg-sage-50 text-sage-700 flex items-center justify-center">
+            <Sun className="w-5 h-5 text-sage-600" />
           </div>
-          <p className="text-2xl font-black text-slate-800">{completedTasksCount} / {totalTasksCount}</p>
-          <div className="w-full bg-slate-100 h-1.5 rounded-full mt-2 overflow-hidden">
-            <div className="bg-emerald-500 h-full rounded-full transition-all duration-500" style={{ width: `${taskCompletionPercent}%` }} />
+          <div>
+            <h3 className="text-xs sm:text-sm font-bold text-slate-800">Soothing Ambient Soundscapes</h3>
+            <p className="text-[11px] text-slate-500">Play in the background while you relax or write</p>
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-2xl border border-lavender-100 shadow-soft">
-          <div className="flex items-center justify-between text-slate-500 mb-2">
-            <span className="text-xs font-semibold">Study Streak</span>
-            <TrendingUp className="w-4 h-4 text-purple-500" />
-          </div>
-          <p className="text-2xl font-black text-slate-800">14 Days</p>
-          <p className="text-[11px] text-purple-600 font-semibold mt-1">Consistent rhythm 🔥</p>
-        </div>
-
-        <div className="bg-white p-4 rounded-2xl border border-lavender-100 shadow-soft">
-          <div className="flex items-center justify-between text-slate-500 mb-2">
-            <span className="text-xs font-semibold">Daily Goal</span>
-            <Clock className="w-4 h-4 text-blue-500" />
-          </div>
-          <p className="text-2xl font-black text-slate-800">{currentUser?.dailyTargetHours || 6.5} hrs</p>
-          <p className="text-[11px] text-slate-400 mt-1">Balanced target</p>
-        </div>
-
-        <div className="bg-white p-4 rounded-2xl border border-lavender-100 shadow-soft">
-          <div className="flex items-center justify-between text-slate-500 mb-2">
-            <span className="text-xs font-semibold">Next Mock Test</span>
-            <Calendar className="w-4 h-4 text-amber-500" />
-          </div>
-          <p className="text-2xl font-black text-slate-800">3 Days</p>
-          <p className="text-[11px] text-amber-600 font-semibold mt-1">Full Syllabus #5</p>
+        <div className="flex items-center gap-2 flex-wrap">
+          <button
+            onClick={() => toggleSound('rain')}
+            className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all ${
+              activeSound === 'rain' ? 'bg-sky-600 text-white shadow-sm' : 'bg-slate-50 text-slate-700 border border-slate-200 hover:bg-slate-100'
+            }`}
+          >
+            {activeSound === 'rain' ? <Volume2 className="w-3.5 h-3.5 animate-pulse" /> : '🌧️'}
+            <span>Gentle Rain</span>
+          </button>
+          <button
+            onClick={() => toggleSound('bowl')}
+            className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all ${
+              activeSound === 'bowl' ? 'bg-purple-600 text-white shadow-sm' : 'bg-slate-50 text-slate-700 border border-slate-200 hover:bg-slate-100'
+            }`}
+          >
+            {activeSound === 'bowl' ? <Volume2 className="w-3.5 h-3.5 animate-pulse" /> : '🧘'}
+            <span>Tibetan Singing Bowl</span>
+          </button>
+          <button
+            onClick={() => toggleSound('breeze')}
+            className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all ${
+              activeSound === 'breeze' ? 'bg-emerald-600 text-white shadow-sm' : 'bg-slate-50 text-slate-700 border border-slate-200 hover:bg-slate-100'
+            }`}
+          >
+            {activeSound === 'breeze' ? <Volume2 className="w-3.5 h-3.5 animate-pulse" /> : '🍃'}
+            <span>Forest Breeze</span>
+          </button>
+          {activeSound && (
+            <button
+              onClick={() => toggleSound(activeSound as any)}
+              className="p-1.5 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100"
+              title="Stop sound"
+            >
+              <VolumeX className="w-4 h-4" />
+            </button>
+          )}
         </div>
       </div>
 
-      {/* 3. Main Dashboard Grid: Left Academic Column, Right Wellbeing Column */}
+      {/* 3. Core Sanctuary Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
-        {/* Left 2 Columns: Academic Preparation */}
+        {/* Left 2 Columns: Emotional Check-in & AI Companion Lounge */}
         <div className="lg:col-span-2 space-y-8">
           
-          {/* Today's Study Plan */}
-          <div className="bg-white rounded-3xl p-6 border border-lavender-100 shadow-card">
-            <div className="flex items-center justify-between mb-5">
+          {/* Daily Mood & Emotional Check-In Widget */}
+          <div className="bg-white rounded-3xl p-6 sm:p-8 border border-sage-100 shadow-card space-y-5">
+            <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-lg font-bold text-slate-800">Today's Study Plan</h2>
-                <p className="text-xs text-slate-500">Prioritized for memory retention and sustainable focus</p>
-              </div>
-              <button
-                onClick={() => onNavigateTab('academic')}
-                className="text-xs font-bold text-lavender-600 hover:text-lavender-800 flex items-center gap-1"
-              >
-                <span>Full Planner</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </button>
-            </div>
-
-            <div className="space-y-3">
-              {tasks.map(task => (
-                <div
-                  key={task.id}
-                  className={`p-3.5 rounded-2xl border transition-all flex items-center justify-between gap-3 ${
-                    task.completed
-                      ? 'bg-slate-50/70 border-slate-200 text-slate-400'
-                      : 'bg-white border-lavender-100 hover:border-lavender-300 text-slate-800'
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <button
-                      onClick={() => handleToggleTask(task.id)}
-                      className="p-1 rounded-lg text-slate-400 hover:text-lavender-600 transition-colors"
-                    >
-                      {task.completed ? (
-                        <CheckCircle2 className="w-5 h-5 text-emerald-500" />
-                      ) : (
-                        <Circle className="w-5 h-5 text-slate-300" />
-                      )}
-                    </button>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-[10px] px-2 py-0.5 rounded-md font-bold uppercase tracking-wider bg-lavender-50 text-lavender-700 border border-lavender-100">
-                          {task.subject}
-                        </span>
-                        <span className="text-xs text-slate-400 font-mono">{task.scheduledTime}</span>
-                      </div>
-                      <p className={`text-xs sm:text-sm font-medium mt-1 ${task.completed ? 'line-through text-slate-400' : 'text-slate-800'}`}>
-                        {task.task}
-                      </p>
-                    </div>
-                  </div>
-
-                  {!task.completed && (
-                    <button
-                      onClick={() => {
-                        setActiveTaskForTimer(task);
-                        setIsPomodoroOpen(true);
-                      }}
-                      className="p-2 rounded-xl text-lavender-600 bg-lavender-50 hover:bg-lavender-100 transition-colors shrink-0"
-                      title="Focus on this task"
-                    >
-                      <Play className="w-4 h-4 fill-current" />
-                    </button>
-                  )}
+                <div className="flex items-center gap-2 text-sage-800 font-bold text-sm">
+                  <Heart className="w-4 h-4 fill-sage-600 text-sage-600" />
+                  <span>How is your heart and mind feeling today?</span>
                 </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Subject Syllabus Progress */}
-          <div className="bg-white rounded-3xl p-6 border border-lavender-100 shadow-card">
-            <div className="flex items-center justify-between mb-5">
-              <div>
-                <h2 className="text-lg font-bold text-slate-800">Syllabus Coverage</h2>
-                <p className="text-xs text-slate-500">Track chapter completion at your own pace</p>
+                <p className="text-xs text-slate-500 mt-1">
+                  Honest self-awareness is the highest form of self-care. There are no right or wrong feelings.
+                </p>
               </div>
-              <span className="text-xs font-semibold text-slate-500">
-                Exam Goal: {currentUser?.examGoal || 'JEE Main'}
-              </span>
             </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              {syllabus.map(sub => (
-                <div key={sub.id} className="p-4 rounded-2xl border border-slate-100 bg-slate-50/50 flex flex-col justify-between">
-                  <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="font-bold text-sm text-slate-800">{sub.name}</span>
-                      <span className="text-xs font-black text-lavender-600">{sub.progress}%</span>
-                    </div>
-                    <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden mb-3">
-                      <div
-                        className="bg-gradient-to-r from-lavender-500 to-purple-600 h-full rounded-full transition-all duration-500"
-                        style={{ width: `${sub.progress}%` }}
-                      />
-                    </div>
-                    <p className="text-xs text-slate-500">
-                      {sub.completedChapters} of {sub.totalChapters} chapters done
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => handleIncrementChapter(sub.id)}
-                    className="mt-4 w-full py-1.5 px-3 rounded-xl bg-white border border-slate-200 hover:border-lavender-300 text-xs font-semibold text-slate-700 flex items-center justify-center gap-1 shadow-sm transition-all"
-                  >
-                    <Plus className="w-3.5 h-3.5" />
-                    <span>+1 Chapter Done</span>
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Recent Mock Test Performance */}
-          <div className="bg-white rounded-3xl p-6 border border-lavender-100 shadow-card">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h2 className="text-lg font-bold text-slate-800">Recent Mock Tests</h2>
-                <p className="text-xs text-slate-500">Use mocks to diagnose concept gaps, not to judge your worth</p>
-              </div>
-              <button
-                onClick={() => onNavigateTab('academic')}
-                className="text-xs font-bold text-lavender-600 hover:text-lavender-800"
-              >
-                Mistake Notebook →
-              </button>
-            </div>
-
-            <div className="space-y-3">
-              {mockTests.slice(0, 2).map(test => (
-                <div key={test.id} className="p-4 rounded-2xl border border-slate-100 bg-white hover:border-lavender-200 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                  <div>
-                    <h3 className="font-bold text-sm text-slate-800">{test.title}</h3>
-                    <p className="text-xs text-slate-500 mt-0.5">Date: {test.date} • {test.notes}</p>
-                  </div>
-                  <div className="flex items-center gap-3 shrink-0">
-                    <div className="text-right">
-                      <p className="text-sm font-extrabold text-slate-800">{test.score} / {test.totalMarks}</p>
-                      <p className="text-[11px] text-emerald-600 font-bold">{test.percentile} %ile</p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-        </div>
-
-        {/* Right Column: Dedicated Mental Wellbeing & Self-Care */}
-        <div className="space-y-6">
-          
-          {/* Daily Mood Check-In Widget */}
-          <div className="bg-gradient-to-br from-sage-50 via-white to-lavender-50 rounded-3xl p-6 border border-sage-100 shadow-card">
-            <div className="flex items-center gap-2 mb-2 text-sage-800">
-              <Heart className="w-4 h-4 fill-sage-500 text-sage-500" />
-              <h2 className="text-base font-bold">Daily Mood Check-In</h2>
-            </div>
-            <p className="text-xs text-slate-600 mb-4">
-              How is your energy and mind feeling right now? Checking in takes 10 seconds.
-            </p>
 
             {moodSubmitted ? (
-              <div className="p-4 rounded-2xl bg-sage-100/70 border border-sage-200 text-center animate-in fade-in">
-                <CheckCircle2 className="w-8 h-8 text-sage-600 mx-auto mb-2" />
-                <p className="text-xs font-bold text-sage-800">Check-in logged for today!</p>
-                <p className="text-[11px] text-sage-600 mt-1">Thank you for pausing and listening to yourself.</p>
+              <div className="p-5 rounded-2xl bg-sage-50 border border-sage-200 text-center animate-in fade-in space-y-2">
+                <CheckCircle2 className="w-8 h-8 text-sage-600 mx-auto" />
+                <h4 className="text-sm font-bold text-sage-900">Check-In Saved with Care</h4>
+                <p className="text-xs text-sage-700">
+                  Thank you for pausing and acknowledging how you feel. Remember to drink water and unclench your jaw.
+                </p>
                 <button
                   onClick={() => setMoodSubmitted(false)}
-                  className="mt-3 text-xs text-sage-700 underline font-medium"
+                  className="text-xs font-semibold text-sage-800 underline mt-2 inline-block"
                 >
-                  Update check-in
+                  Update your mood
                 </button>
               </div>
             ) : (
               <div className="space-y-4">
-                <div className="grid grid-cols-5 gap-1.5">
+                <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
                   {[
-                    { label: 'Great', emoji: '🌟' },
-                    { label: 'Good', emoji: '😊' },
-                    { label: 'Okay', emoji: '😐' },
-                    { label: 'Stressed', emoji: '😰' },
-                    { label: 'Exhausted', emoji: '😴' }
+                    { label: 'Peaceful', emoji: '🌿', desc: 'Calm & grounded' },
+                    { label: 'Hopeful', emoji: '✨', desc: 'Quiet optimism' },
+                    { label: 'Okay', emoji: '😐', desc: 'Just getting by' },
+                    { label: 'Stressed', emoji: '😰', desc: 'Test pressure' },
+                    { label: 'Exhausted', emoji: '😴', desc: 'Need deep rest' }
                   ].map(m => (
                     <button
                       key={m.label}
                       type="button"
                       onClick={() => setSelectedMood(m.label)}
-                      className={`p-2 rounded-xl text-center transition-all ${
+                      className={`p-3.5 rounded-2xl text-center transition-all ${
                         selectedMood === m.label
                           ? 'bg-sage-600 text-white shadow-md scale-105'
-                          : 'bg-white border border-slate-200 hover:bg-slate-50 text-slate-700'
+                          : 'bg-slate-50 border border-slate-200 hover:bg-slate-100 text-slate-700'
                       }`}
                     >
-                      <span className="text-xl block">{m.emoji}</span>
-                      <span className="text-[10px] font-bold block mt-1 truncate">{m.label}</span>
+                      <span className="text-2xl block mb-1">{m.emoji}</span>
+                      <p className="text-xs font-bold truncate">{m.label}</p>
+                      <p className="text-[10px] opacity-80 mt-0.5 truncate">{m.desc}</p>
                     </button>
                   ))}
                 </div>
 
                 {selectedMood && (
-                  <div className="space-y-3 animate-in fade-in">
+                  <div className="space-y-3 pt-2 animate-in fade-in">
                     <div>
-                      <label className="text-[11px] font-bold text-slate-600 block mb-1">
-                        Energy Level (1-5): {moodEnergy}/5
+                      <label className="text-xs font-bold text-slate-700 block mb-1">
+                        Current Energy Reserve: {moodEnergy}/5
                       </label>
                       <input
                         type="range"
@@ -407,16 +259,16 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser,
                     </div>
                     <input
                       type="text"
-                      placeholder="Optional note: What is on your mind?"
+                      placeholder="Optional: Want to write one sentence about what is on your mind?"
                       value={moodNote}
                       onChange={e => setMoodNote(e.target.value)}
-                      className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-sage-400"
+                      className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-sage-400"
                     />
                     <button
                       onClick={handleMoodSubmit}
-                      className="w-full py-2 rounded-xl bg-sage-600 hover:bg-sage-700 text-white font-bold text-xs shadow-md shadow-sage-200 transition-all"
+                      className="w-full py-2.5 rounded-xl bg-sage-600 hover:bg-sage-700 text-white font-bold text-xs shadow-md shadow-sage-200 transition-all"
                     >
-                      Save Daily Check-In
+                      Save Check-In
                     </button>
                   </div>
                 )}
@@ -424,83 +276,205 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser,
             )}
           </div>
 
-          {/* Weekly Wellbeing Reflection Callout */}
-          <div className="bg-white rounded-3xl p-6 border border-lavender-100 shadow-card">
-            <div className="flex items-center gap-2 mb-2 text-lavender-700">
-              <Sparkles className="w-4 h-4" />
-              <h2 className="text-base font-bold">Weekly Reflection</h2>
+          {/* AI Wellbeing Companion Quick Lounge */}
+          <div className="bg-white rounded-3xl p-6 sm:p-8 border border-lavender-100 shadow-card space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="flex items-center gap-2 text-lavender-700 font-bold text-sm">
+                  <Bot className="w-4 h-4" />
+                  <span>Talk with AI Companion</span>
+                </div>
+                <h3 className="text-base font-extrabold text-slate-800 mt-1">Choose a Caring Voice to Chat With</h3>
+              </div>
+              <button
+                onClick={() => onNavigateTab('companion')}
+                className="text-xs font-bold text-lavender-600 hover:text-lavender-800 flex items-center gap-1"
+              >
+                <span>Full Chatroom</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
             </div>
-            <p className="text-xs text-slate-600 leading-relaxed mb-4">
-              Take 3 minutes to reflect on sleep, stress, and academic pressure. Get personalized, non-judgmental guidance.
-            </p>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+              {[
+                {
+                  id: 'champion_ronaldo',
+                  name: 'Champion Spirit (CR7)',
+                  avatar: '⚡',
+                  quote: '"Siuuu! Keep your head up, champion! Consistent habits beat temporary doubt every single day."',
+                  color: 'hover:border-amber-300'
+                },
+                {
+                  id: 'mickey_pal',
+                  name: 'Cheerful Pal (Mickey)',
+                  avatar: '🎈',
+                  quote: '"Oh boy, pal! Every tough problem is just a puzzle waiting for a friendly team solution!"',
+                  color: 'hover:border-rose-300'
+                },
+                {
+                  id: 'anime_sensei',
+                  name: 'Inspiring Anime Sensei',
+                  avatar: '⚔️',
+                  quote: '"This exam is merely one training arc in your epic story. Master your inner calm."',
+                  color: 'hover:border-purple-300'
+                },
+                {
+                  id: 'calm_friend',
+                  name: 'Calm, Thoughtful Friend',
+                  avatar: '☕',
+                  quote: '"You do not have to prove anything to me right now. I am right here with you."',
+                  color: 'hover:border-sky-300'
+                }
+              ].map(c => (
+                <button
+                  key={c.id}
+                  onClick={() => onNavigateTab('companion')}
+                  className={`p-4 rounded-2xl border border-slate-100 bg-slate-50/60 hover:bg-white text-left transition-all ${c.color} flex flex-col justify-between`}
+                >
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-xl">{c.avatar}</span>
+                    <span className="font-bold text-xs text-slate-800">{c.name}</span>
+                  </div>
+                  <p className="text-[11px] text-slate-600 italic leading-snug">{c.quote}</p>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* 4 Interactive Games Showcase */}
+          <div className="bg-white rounded-3xl p-6 sm:p-8 border border-lavender-100 shadow-card space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="flex items-center gap-2 text-purple-700 font-bold text-sm">
+                  <Gamepad2 className="w-4 h-4" />
+                  <span>Playful Mindful Resets</span>
+                </div>
+                <h3 className="text-base font-extrabold text-slate-800 mt-1">Four Interactive Wellbeing Games</h3>
+              </div>
+              <button
+                onClick={() => onNavigateTab('games')}
+                className="text-xs font-bold text-purple-600 hover:text-purple-800 flex items-center gap-1"
+              >
+                <span>Play Games</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {[
+                { title: 'Pattern & Focus', icon: '🌸', desc: 'Harmonic chimes memory' },
+                { title: 'Emotion Garden', icon: '🌿', desc: 'Plant compassion blooms' },
+                { title: 'Choices & Stories', icon: '📖', desc: 'Exam dilemma scenarios' },
+                { title: 'Calm Break', icon: '🧘', desc: 'Box breath & soundscapes' }
+              ].map((g, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => onNavigateTab('games')}
+                  className="p-3.5 rounded-2xl bg-slate-50 border border-slate-100 hover:border-purple-200 hover:bg-white text-left transition-all"
+                >
+                  <span className="text-2xl block mb-1">{g.icon}</span>
+                  <h4 className="text-xs font-bold text-slate-800">{g.title}</h4>
+                  <p className="text-[10px] text-slate-500 mt-0.5">{g.desc}</p>
+                </button>
+              ))}
+            </div>
+          </div>
+
+        </div>
+
+        {/* Right Column: 60-Second Breathing, Self-Care Insights & Schedule Nudge */}
+        <div className="space-y-6">
+          
+          {/* Quick Guided Breathing Circle */}
+          <div className="bg-white rounded-3xl p-6 border border-sky-100 shadow-card text-center space-y-4">
+            <div className="flex items-center justify-center gap-1.5 text-sky-700 font-bold text-xs">
+              <Wind className="w-4 h-4" />
+              <span>Instant Nervous System Reset</span>
+            </div>
+
+            <div className="relative w-36 h-36 mx-auto flex items-center justify-center">
+              <div
+                className={`absolute inset-0 rounded-full bg-gradient-to-tr from-sky-300 to-indigo-400 opacity-20 transition-all duration-1000 ${
+                  isBreathActive && breathPhase === 'Inhale'
+                    ? 'scale-125'
+                    : isBreathActive && breathPhase === 'Exhale'
+                    ? 'scale-75'
+                    : 'scale-100'
+                }`}
+              />
+              <div className="relative z-10">
+                <span className="text-base font-extrabold text-slate-800 block">
+                  {breathPhase}
+                </span>
+                <span className="text-2xl font-black text-sky-600 font-mono mt-0.5 block">
+                  {breathCount}s
+                </span>
+              </div>
+            </div>
+
             <button
-              onClick={() => onNavigateTab('wellbeing')}
-              className="w-full py-2.5 rounded-xl bg-lavender-50 hover:bg-lavender-100 text-lavender-800 font-bold text-xs border border-lavender-200 transition-all flex items-center justify-center gap-2"
+              onClick={() => setIsBreathActive(!isBreathActive)}
+              className="w-full py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs shadow-sm transition-all"
             >
-              <span>Take Weekly Check-In</span>
-              <ArrowRight className="w-4 h-4" />
+              {isBreathActive ? 'Pause Breath Guide' : 'Start 60-Second Breathing'}
             </button>
           </div>
 
-          {/* Recommended Breaks & Self-Care */}
-          <div className="bg-white rounded-3xl p-6 border border-lavender-100 shadow-card">
-            <div className="flex items-center gap-2 mb-3 text-slate-800">
-              <Coffee className="w-4 h-4 text-amber-600" />
-              <h2 className="text-base font-bold">Mindful Micro-Breaks</h2>
-            </div>
+          {/* Mental Wellbeing Mantras for Exam Aspirants */}
+          <div className="bg-white rounded-3xl p-6 border border-lavender-100 shadow-card space-y-3">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">Remember When Pressure Rises</h4>
             <div className="space-y-2.5">
               {[
-                { title: '20-20-20 Eye Rest', desc: 'Look at an object 20 feet away for 20 seconds to relax ocular muscles.' },
-                { title: 'Hydration Reset', desc: 'Drink a glass of water. Brain cells are 73% water; dehydration drops focus.' },
-                { title: '5-Minute Box Breathing', desc: 'Inhale 4s, Hold 4s, Exhale 4s, Hold 4s to reset the vagus nerve.' }
-              ].map((b, idx) => (
+                { title: 'Sleep is Brain Consolidation', desc: 'Long-term memory is formed in slow-wave sleep. 7 hours of rest beats 4 hours of drowsy cramming.' },
+                { title: 'The Comparison Trap', desc: 'Others may boast or project confidence. The only trajectory that matters is your personal quiet growth.' },
+                { title: 'You Are More Than an Exam', desc: 'No rank defines your capability, your heart, or the love of the people who matter.' }
+              ].map((m, idx) => (
                 <div key={idx} className="p-3 rounded-2xl bg-slate-50 border border-slate-100">
-                  <h3 className="text-xs font-bold text-slate-800">{b.title}</h3>
-                  <p className="text-[11px] text-slate-500 mt-0.5 leading-tight">{b.desc}</p>
+                  <p className="text-xs font-bold text-slate-800">{m.title}</p>
+                  <p className="text-[11px] text-slate-500 mt-0.5 leading-relaxed">{m.desc}</p>
                 </div>
               ))}
             </div>
+          </div>
 
+          {/* Gentle Nudge to Study Schedule (Clarified as the last option) */}
+          <div className="p-5 rounded-3xl bg-slate-50 border border-slate-200 space-y-2 text-left">
+            <div className="flex items-center gap-2 text-slate-700 font-bold text-xs">
+              <Calendar className="w-4 h-4 text-slate-500" />
+              <span>Exam Schedule & Planner (Optional)</span>
+            </div>
+            <p className="text-[11px] text-slate-500 leading-relaxed">
+              If you ever want to check or adjust your study schedule without pressure, it is available as the last tab in the sidebar. You never need to study just because you opened this website.
+            </p>
             <button
-              onClick={() => onNavigateTab('games')}
-              className="mt-4 w-full py-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-xs transition-colors"
+              onClick={() => onNavigateTab('academic')}
+              className="text-xs font-bold text-lavender-700 hover:text-lavender-900 underline"
             >
-              Explore 4 Wellbeing Games →
+              Open study schedule when ready →
             </button>
           </div>
 
-          {/* Support Safety Banner */}
-          <div className="p-5 rounded-3xl bg-rose-50/70 border border-rose-200">
-            <div className="flex items-center gap-2 text-rose-800 font-bold text-xs mb-1">
+          {/* 24x7 Crisis Support Card */}
+          <div className="p-5 rounded-3xl bg-rose-50/80 border border-rose-200 space-y-2">
+            <div className="flex items-center gap-2 text-rose-800 font-bold text-xs">
               <ShieldAlert className="w-4 h-4 text-rose-600" />
-              <span>Always Here For You</span>
+              <span>Free 24x7 Confidential Help</span>
             </div>
-            <p className="text-xs text-rose-900 leading-relaxed mb-3">
-              If exam stress feels unmanageable, you don't have to carry it in silence. Free, confidential support is available 24x7.
+            <p className="text-[11px] text-rose-900 leading-relaxed">
+              If feelings feel heavy or unbearable, human counsellors are ready to listen without judgment.
             </p>
             <button
               onClick={onOpenCrisisModal}
-              className="w-full py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-sm transition-colors"
+              className="w-full py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-sm transition-colors flex items-center justify-center gap-1.5"
             >
-              View Free Crisis Helplines (14416)
+              <PhoneCall className="w-3.5 h-3.5" />
+              <span>Call Tele-MANAS (14416)</span>
             </button>
           </div>
 
         </div>
 
       </div>
-
-      {/* Pomodoro Focus Modal */}
-      <PomodoroModal
-        isOpen={isPomodoroOpen}
-        onClose={() => setIsPomodoroOpen(false)}
-        taskTitle={activeTaskForTimer?.task}
-        onCompleteTask={() => {
-          if (activeTaskForTimer) {
-            handleToggleTask(activeTaskForTimer.id);
-          }
-        }}
-      />
 
     </div>
   );

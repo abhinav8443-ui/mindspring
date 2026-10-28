@@ -1,4 +1,16 @@
-export type Role = 'student' | 'parent' | 'teacher' | 'counsellor' | 'admin';
+export type Role = 'student' | 'parent' | 'counsellor' | 'admin';
+
+export interface TeacherContact {
+  id: string;
+  name: string;
+  subject: string;
+  schoolOrCoaching: string;
+  phone: string;
+  email: string;
+  availableHours?: string;
+  notes?: string;
+  isTrustedMentor?: boolean;
+}
 
 export interface User {
   id: string;

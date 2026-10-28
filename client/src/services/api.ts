@@ -12,7 +12,8 @@ import {
   CompanionCharacter, 
   ConversationGoal, 
   Counsellor, 
-  ConsultationRequest 
+  ConsultationRequest,
+  TeacherContact 
 } from '../types';
 
 const API_BASE = '/api';
@@ -63,14 +64,6 @@ const LOCAL_USERS: User[] = [
     email: 'sunita@mindspring.demo',
     role: 'parent',
     studentName: 'Aarav Sharma'
-  },
-  {
-    id: 'teacher-1',
-    name: 'Prof. Vikram Sen',
-    email: 'vikram@mindspring.demo',
-    role: 'teacher',
-    subject: 'Physics & Mechanics',
-    studentName: 'Aarav Sharma & Priya Patel'
   },
   {
     id: 'counsellor-1',
@@ -217,6 +210,31 @@ const LOCAL_COUNSELLORS: Counsellor[] = [
     rating: 4.95,
     reviewsCount: 195,
     badges: ['Medical Specialist', 'Stress Management Expert']
+  }
+];
+
+const LOCAL_TEACHERS: TeacherContact[] = [
+  {
+    id: 'tch-1',
+    name: 'Prof. Vikram Sen',
+    subject: 'Physics & Mechanics',
+    schoolOrCoaching: 'Apex Institute / Super-30 Cohort',
+    phone: '+91 98234 56789',
+    email: 'vikram.sen@faculty.demo',
+    availableHours: 'Mon-Fri 4:30 PM - 6:00 PM',
+    notes: 'Approachable for pacing fears and conceptual doubt clearing. Always reminds students to sleep 7 hours.',
+    isTrustedMentor: true
+  },
+  {
+    id: 'tch-2',
+    name: 'Mrs. Geeta Krishnan',
+    subject: 'Mathematics & Calculus',
+    schoolOrCoaching: 'Delhi Public School / Advanced Batch',
+    phone: '+91 98345 67890',
+    email: 'geeta.krishnan@faculty.demo',
+    availableHours: 'Tue & Thu 5:00 PM - 7:00 PM',
+    notes: 'Patient mentor who helps untangle test panic and formula slips without criticism.',
+    isTrustedMentor: true
   }
 ];
 
@@ -862,24 +880,42 @@ export const api = {
     }));
   },
 
-  // Dashboards
-  async getTeacherDashboard(): Promise<any> {
-    return safeFetch(`${API_BASE}/dashboards/teacher`, undefined, () => ({
-      teacher: { name: 'Prof. Vikram Sen', subject: 'Physics & Mechanics' },
-      students: [
-        { id: 'student-1', name: 'Aarav Sharma', examGoal: 'JEE Main & Advanced 2027', avgProgress: 65, latestTestScore: '218 / 300', supportReferralStatus: 'Human-Reviewed Support Initiated' },
-        { id: 'student-2', name: 'Priya Patel', examGoal: 'NEET-UG 2027', avgProgress: 72, latestTestScore: '640 / 720', supportReferralStatus: 'Stable' }
-      ],
-      pedagogicalGuidance: [
-        { title: 'Constructive Mock Review', tip: 'Focus on mistake categorization rather than overall marks.' },
-        { title: 'Spotting Silent Burnout', tip: 'Check in with care if homework is suddenly missed.' }
-      ],
-      authorizedReferrals: [
-        { studentName: 'Aarav Sharma', date: '2026-10-26', topic: 'Pacing anxiety in timed 3-hour tests', status: 'Referred to Dr. Ananya Roy' }
-      ]
-    }));
+  // Student's Teacher Contacts
+  async getTeachers(studentId?: string): Promise<{ teachers: TeacherContact[] }> {
+    return safeFetch(`${API_BASE}/support/teachers`, undefined, () => ({ teachers: LOCAL_TEACHERS }));
   },
 
+  async addTeacher(teacherData: Partial<TeacherContact>, studentId?: string): Promise<{ success: boolean; teacher: TeacherContact }> {
+    return safeFetch(`${API_BASE}/support/teachers`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(teacherData)
+    }, () => {
+      const newTeacher: TeacherContact = {
+        id: `tch-${Date.now()}`,
+        name: teacherData.name || 'Teacher / Mentor',
+        subject: teacherData.subject || 'Subject Guide',
+        schoolOrCoaching: teacherData.schoolOrCoaching || 'School / Coaching',
+        phone: teacherData.phone || '',
+        email: teacherData.email || '',
+        availableHours: teacherData.availableHours || 'By appointment',
+        notes: teacherData.notes || '',
+        isTrustedMentor: Boolean(teacherData.isTrustedMentor)
+      };
+      LOCAL_TEACHERS.push(newTeacher);
+      return { success: true, teacher: newTeacher };
+    });
+  },
+
+  async deleteTeacher(teacherId: string, studentId?: string): Promise<{ success: boolean }> {
+    return safeFetch(`${API_BASE}/support/teachers/${teacherId}`, { method: 'DELETE' }, () => {
+      const idx = LOCAL_TEACHERS.findIndex(t => t.id === teacherId);
+      if (idx >= 0) LOCAL_TEACHERS.splice(idx, 1);
+      return { success: true };
+    });
+  },
+
+  // Dashboards
   async getParentDashboard(): Promise<any> {
     return safeFetch(`${API_BASE}/dashboards/parent`, undefined, () => ({
       parentName: 'Mrs. Sunita Sharma',

@@ -192,23 +192,25 @@ export const AcademicHub: React.FC<AcademicHubProps> = ({ currentUser }) => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200">
         <div>
-          <div className="flex items-center gap-2 text-lavender-700 font-semibold text-xs mb-1">
-            <BookOpen className="w-4 h-4" />
-            <span>Sustainable Academic Tracking</span>
+          <div className="flex items-center gap-2 text-slate-500 font-semibold text-xs mb-1">
+            <Calendar className="w-4 h-4 text-slate-400" />
+            <span>Optional Schedule & Balance Organizer</span>
           </div>
-          <h1 className="text-2xl font-extrabold text-slate-800">Academic Prep Hub</h1>
-          <p className="text-xs text-slate-500">Manage syllabus, spaced repetition, mock analysis, and backlogs calmly.</p>
+          <h1 className="text-2xl font-extrabold text-slate-800">Study Schedule & Deadlines (Optional)</h1>
+          <p className="text-xs text-slate-500">
+            A quiet space to organize dates and syllabus so you don't carry mental clutter. You do not have to study right now.
+          </p>
         </div>
 
         <button
           onClick={() => {
-            setTimerTaskTitle('Active Study Sprint');
+            setTimerTaskTitle('Gentle Focus Sprint');
             setIsPomodoroOpen(true);
           }}
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-lavender-600 hover:bg-lavender-700 text-white font-bold text-xs sm:text-sm shadow-md shadow-lavender-200 transition-all shrink-0"
+          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs sm:text-sm shadow-md transition-all shrink-0"
         >
           <Play className="w-4 h-4 fill-current" />
-          <span>Launch Pomodoro Timer</span>
+          <span>Launch Optional Timer</span>
         </button>
       </div>
 

@@ -48,15 +48,6 @@ export const USERS = [
     studentName: 'Aarav Sharma'
   },
   {
-    id: 'teacher-1',
-    name: 'Prof. Vikram Sen',
-    email: 'vikram@mindspring.demo',
-    role: 'teacher',
-    subject: 'Physics',
-    batches: ['JEE 2027 Super-30', 'Class 12 Advanced'],
-    studentIds: ['student-1', 'student-2']
-  },
-  {
     id: 'counsellor-1',
     name: 'Dr. Ananya Roy, M.Phil',
     email: 'ananya@mindspring.demo',
